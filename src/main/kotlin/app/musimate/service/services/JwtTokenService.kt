@@ -3,7 +3,6 @@ package app.musimate.service.services
 import app.musimate.service.models.User
 import app.musimate.service.utils.*
 import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
