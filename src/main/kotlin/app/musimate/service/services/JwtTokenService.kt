@@ -2,6 +2,8 @@ package app.musimate.service.services
 
 import app.musimate.service.models.User
 import app.musimate.service.utils.*
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -40,13 +42,40 @@ class JwtTokenService {
 
     fun isAuthTokenValid(token: String): Boolean {
 
-        val expiration = Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
-            ?.payload?.expiration
+        try {
+            val expiration = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                ?.payload?.expiration
 
-        return expiration != null && expiration.before(Utils.currentDate())
+            return expiration != null && expiration.after(Utils.currentDate())
+        } catch(ex: Exception) {
+            return false
+        }
+    }
+
+    fun extractEmail(token: String): String? {
+
+        return extractAllClaims(token)?.subject
+    }
+
+    fun extractClaimValue(token: String, claim: String): String? {
+
+        return extractAllClaims(token)?.get(claim, String::class.java)
+    }
+
+    private fun extractAllClaims(token: String): Claims? {
+
+        return try {
+            Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .payload
+        } catch (ex: Exception) {
+            null
+        }
     }
 
     private val secretKey: SecretKey by lazy {
