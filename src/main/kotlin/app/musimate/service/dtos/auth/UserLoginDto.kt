@@ -1,4 +1,4 @@
-package app.musimate.service.dtos
+package app.musimate.service.dtos.auth
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty

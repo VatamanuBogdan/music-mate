@@ -1,7 +1,7 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.UserLoginDto
-import app.musimate.service.dtos.UserRegisterDto
+import app.musimate.service.dtos.auth.UserLoginDto
+import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.exceptions.InvalidCredentialsException
 import app.musimate.service.exceptions.UnregisteredUserException
 import app.musimate.service.exceptions.UserAlreadyRegisteredException

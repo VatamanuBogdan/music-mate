@@ -1,6 +1,6 @@
 package app.musimate.service.utils
 
-import app.musimate.service.dtos.UserRegisterDto
+import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.models.User
 import org.springframework.security.crypto.password.PasswordEncoder
 import java.time.LocalDateTime

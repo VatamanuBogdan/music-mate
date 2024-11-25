@@ -1,4 +1,4 @@
-package app.musimate.service.dtos
+package app.musimate.service.dtos.auth
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.validation.constraints.Email
