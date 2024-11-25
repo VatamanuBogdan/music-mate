@@ -30,4 +30,7 @@ data class User(
 
     @Column(name = "registered_date", nullable = false)
     var registeredDate: LocalDateTime,
+
+    @OneToMany(mappedBy = "owner")
+    var playlists: MutableList<Playlist> = mutableListOf()
 )
