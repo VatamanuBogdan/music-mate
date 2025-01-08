@@ -12,6 +12,10 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.filter.CorsFilter
+
 
 @Configuration
 class ApplicationConfiguration(
@@ -40,5 +44,20 @@ class ApplicationConfiguration(
             setUserDetailsService(userDetailsService())
             setPasswordEncoder(passwordEncoder())
         }
+    }
+
+    // TODO: Remove CORS disabling in production
+    @Bean
+    fun corsFilter(): CorsFilter {
+        val config = CorsConfiguration()
+        config.allowCredentials = true
+        config.addAllowedOriginPattern("*") // Use "*" to allow all origins
+        config.addAllowedHeader("*")
+        config.addAllowedMethod("*")
+
+        val source: UrlBasedCorsConfigurationSource = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", config)
+
+        return CorsFilter(source)
     }
 }

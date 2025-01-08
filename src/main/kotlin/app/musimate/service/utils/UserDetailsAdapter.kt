@@ -4,7 +4,7 @@ import app.musimate.service.models.User
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
-class UserDetailsAdapter(private val user: User): UserDetails {
+class UserDetailsAdapter(val user: User): UserDetails {
 
     override fun getAuthorities(): MutableCollection<out GrantedAuthority> {
         return mutableListOf()

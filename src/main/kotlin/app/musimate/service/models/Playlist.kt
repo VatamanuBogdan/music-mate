@@ -28,5 +28,5 @@ data class Playlist(
     var tracks: MutableList<Track> = mutableListOf(),
 
     @Column(name = "track_count", nullable = false)
-    var trackCount: UInt
+    var trackCount: UInt = 0u
 )

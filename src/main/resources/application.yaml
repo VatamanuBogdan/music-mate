@@ -19,4 +19,4 @@ server:
 auth:
   jwt:
     secret: ${JWT_SECRET}
-    duration: 360
+    duration: 3600

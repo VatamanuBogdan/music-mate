@@ -1,5 +1,6 @@
 package app.musimate.service.models
 
+import app.musimate.service.utils.Platform
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import jakarta.persistence.EnumType
