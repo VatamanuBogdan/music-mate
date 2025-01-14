@@ -20,3 +20,9 @@ class InvalidCredentialsException: RuntimeException()
     reason = "User is not registered"
 )
 class UnregisteredUserException: RuntimeException()
+
+@ResponseStatus(
+    value = HttpStatus.FORBIDDEN,
+    reason = "Invalid refresh token"
+)
+class InvalidRefreshToken: RuntimeException()

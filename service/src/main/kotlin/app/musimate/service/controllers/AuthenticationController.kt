@@ -1,9 +1,12 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.dtos.auth.UserLoginDto
-import app.musimate.service.dtos.auth.UserLoginResponseDto
+import app.musimate.service.dtos.auth.AuthAccessTokenDto
 import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.services.AuthenticationService
+import app.musimate.service.services.JwtTokenService
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -11,18 +14,25 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/auth/")
 class AuthenticationController(
-    private val authService: AuthenticationService
+    private val authService: AuthenticationService,
+    private val jwtTokenService: JwtTokenService
 ) {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun login(@Valid @RequestBody body: UserLoginDto): UserLoginResponseDto {
+    fun login(@Valid @RequestBody body: UserLoginDto,
+              response: HttpServletResponse
+    ): AuthAccessTokenDto {
 
-        val token = authService.login(body)
-        return UserLoginResponseDto(
+        val (refreshToken, accessToken) = authService.login(body)
+
+        val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
+        response.addCookie(refreshTokenCookie)
+
+        return AuthAccessTokenDto(
             status = HttpStatus.OK,
             message = "Login performed successfully",
-            authToken = token
+            authToken = accessToken
         )
     }
 
@@ -35,5 +45,34 @@ class AuthenticationController(
     @PostMapping("/logout")
     fun logout() {
         throw NotImplementedError("The logout endpoint is not implemented")
+    }
+
+    @GetMapping("/refresh")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun refreshAccessToken(
+        @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String
+    ): AuthAccessTokenDto {
+
+        val token = authService.refreshAccessToken(refreshToken)
+        return AuthAccessTokenDto(
+            status = HttpStatus.CREATED,
+            message = "Refreshed new access token",
+            authToken = token
+        )
+    }
+
+    private fun createCookieForRefreshToken(token: String): Cookie {
+
+        return Cookie(REFRESH_TOKEN_COOKIE, token).apply {
+            isHttpOnly = true
+            // TODO: Set to true in production
+            secure = false
+            path = "/"
+            maxAge = jwtTokenService.refreshTokenDuration.inWholeSeconds.toInt()
+        }
+    }
+
+    private companion object {
+        const val REFRESH_TOKEN_COOKIE="refresh-token"
     }
 }

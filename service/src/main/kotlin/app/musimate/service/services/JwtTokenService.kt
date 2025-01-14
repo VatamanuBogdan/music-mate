@@ -16,42 +16,51 @@ import kotlin.time.Duration.Companion.seconds
 @Service
 class JwtTokenService {
 
-    @Value("\${auth.jwt.duration}")
-    private var tokenDurationSeconds: Double = 0.0
+    @Value("\${auth.token.access-duration-seconds}")
+    private var accessTokenDurationSeconds: Double = 0.0
 
-    @Value("\${auth.jwt.secret}")
+    @Value("\${auth.token.refresh-duration-seconds}")
+    private val refreshTokenDurationSeconds: Double = 0.0
+
+    @Value("\${auth.token.secret}")
     private lateinit var secret: String
 
-    private val tokenDuration: Duration
-        get() = tokenDurationSeconds.seconds
+    val accessTokenDuration: Duration
+        get() = accessTokenDurationSeconds.seconds
 
-    fun generateAuthTokenFor(user: User): Token {
+    val refreshTokenDuration: Duration
+        get() = refreshTokenDurationSeconds.seconds
+
+    fun generateTokenFor(user: User, type: JwtTokenType): JwtToken {
+
+        val tokenTypeClaimValue = getTokenTypeClaimValue(type)
 
         val value = Jwts.builder()
             .subject(user.email)
             .issuedAt(Utils.currentDate())
-            .expiration(Utils.currentDateAfter(tokenDuration))
+            .claim(TOKEN_TYPE_CLAIM_KEY, tokenTypeClaimValue)
+            .expiration(Utils.currentDateAfter(accessTokenDuration))
             .signWith(secretKey, SIGNING_ALGORITHM)
             .compact()
 
-        return Token(TokenType.JWT, value)
+        return JwtToken(type, value)
     }
 
-    fun isAuthTokenValid(token: Token) = isAuthTokenValid(token.value)
+    fun isTokenValid(token: JwtToken) = isTokenValid(token.value, token.type)
 
-    fun isAuthTokenValid(token: String): Boolean {
+    fun isTokenValid(token: String, type: JwtTokenType): Boolean {
 
-        try {
-            val expiration = Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                ?.payload?.expiration
+        val claims = extractAllClaims(token)
 
-            return expiration != null && expiration.after(Utils.currentDate())
-        } catch(ex: Exception) {
+        val typeClaim = claims?.get(TOKEN_TYPE_CLAIM_KEY)
+        val expirationClaim = claims?.expiration
+
+        if (typeClaim == null || expirationClaim == null) {
             return false
         }
+
+        return getTokenTypeClaimValue(type) == typeClaim
+                && expirationClaim.after(Utils.currentDate())
     }
 
     fun extractEmail(token: String): String? {
@@ -77,6 +86,11 @@ class JwtTokenService {
         }
     }
 
+    private fun getTokenTypeClaimValue(type: JwtTokenType) = when(type) {
+        JwtTokenType.ACCESS -> ACCESS_TOKEN_CLAIM_VALUE
+        JwtTokenType.REFRESH -> REFRESH_TOKEN_CLAIM_VALUE
+    }
+
     private val secretKey: SecretKey by lazy {
         val keyBytes = Decoders.BASE64.decode(secret)
         Keys.hmacShaKeyFor(keyBytes)
@@ -84,5 +98,9 @@ class JwtTokenService {
 
     private companion object {
         val SIGNING_ALGORITHM: MacAlgorithm = Jwts.SIG.HS256
+
+        const val TOKEN_TYPE_CLAIM_KEY = "type";
+        const val ACCESS_TOKEN_CLAIM_VALUE = "access"
+        const val REFRESH_TOKEN_CLAIM_VALUE = "refresh"
     }
 }

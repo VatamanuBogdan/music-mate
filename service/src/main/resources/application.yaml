@@ -17,6 +17,7 @@ server:
   error:
     include-message: always
 auth:
-  jwt:
+  token:
     secret: ${JWT_SECRET}
-    duration: 3600
+    refresh-duration-seconds: 86400
+    access-duration-seconds: 900

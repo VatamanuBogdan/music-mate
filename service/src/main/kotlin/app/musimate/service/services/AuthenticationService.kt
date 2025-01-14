@@ -3,20 +3,21 @@ package app.musimate.service.services
 import app.musimate.service.dtos.auth.UserLoginDto
 import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.exceptions.InvalidCredentialsException
+import app.musimate.service.exceptions.InvalidRefreshToken
 import app.musimate.service.exceptions.UnregisteredUserException
 import app.musimate.service.exceptions.UserAlreadyRegisteredException
 import app.musimate.service.models.User
 import app.musimate.service.repositories.UserRepository
-import app.musimate.service.utils.Token
+import app.musimate.service.utils.JwtToken
+import app.musimate.service.utils.JwtTokenType
 import app.musimate.service.utils.User
 import app.musimate.service.utils.UserDetailsAdapter
 import org.slf4j.LoggerFactory
-import org.springframework.security.access.AuthorizationServiceException
-import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+
 
 @Service
 class AuthenticationService(
@@ -36,14 +37,18 @@ class AuthenticationService(
             return principal.user
         }
 
-    fun login(user: UserLoginDto): Token {
+    fun login(user: UserLoginDto): Pair<JwtToken, JwtToken> {
 
         val entity = userRepository.findUserByEmail(user.email)
             ?: throw UnregisteredUserException()
 
-        return if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
+        if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
             logger.info("Logged in ${user.email} with success")
-            jwtTokenService.generateAuthTokenFor(entity)
+
+            val refreshToken = jwtTokenService.generateTokenFor(entity, JwtTokenType.REFRESH)
+            val accessToken = jwtTokenService.generateTokenFor(entity, JwtTokenType.ACCESS)
+
+            return Pair(refreshToken, accessToken)
         } else {
             throw InvalidCredentialsException()
         }
@@ -63,5 +68,13 @@ class AuthenticationService(
         } catch(ex: Exception) {
             logger.error("Failed to register ${entity.email} user")
         }
+    }
+
+    fun refreshAccessToken(refreshToken: String): JwtToken {
+
+        if (refreshToken.isEmpty()) {
+            throw InvalidRefreshToken()
+        }
+
     }
 }
