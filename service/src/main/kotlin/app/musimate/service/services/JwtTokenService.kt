@@ -31,12 +31,12 @@ class JwtTokenService {
     val refreshTokenDuration: Duration
         get() = refreshTokenDurationSeconds.seconds
 
-    fun generateTokenFor(user: User, type: JwtTokenType): JwtToken {
+    fun generateTokenForUser(email: String, type: JwtTokenType): JwtToken {
 
         val tokenTypeClaimValue = getTokenTypeClaimValue(type)
 
         val value = Jwts.builder()
-            .subject(user.email)
+            .subject(email)
             .issuedAt(Utils.currentDate())
             .claim(TOKEN_TYPE_CLAIM_KEY, tokenTypeClaimValue)
             .expiration(Utils.currentDateAfter(accessTokenDuration))

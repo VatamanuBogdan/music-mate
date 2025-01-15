@@ -45,8 +45,8 @@ class AuthenticationService(
         if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
             logger.info("Logged in ${user.email} with success")
 
-            val refreshToken = jwtTokenService.generateTokenFor(entity, JwtTokenType.REFRESH)
-            val accessToken = jwtTokenService.generateTokenFor(entity, JwtTokenType.ACCESS)
+            val refreshToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.REFRESH)
+            val accessToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.ACCESS)
 
             return Pair(refreshToken, accessToken)
         } else {
@@ -75,6 +75,14 @@ class AuthenticationService(
         if (refreshToken.isEmpty()) {
             throw InvalidRefreshToken()
         }
-        TODO()
+
+        if (!jwtTokenService.isTokenValid(refreshToken, type = JwtTokenType.REFRESH)) {
+            throw InvalidRefreshToken()
+        }
+
+        val userEmail = jwtTokenService.extractEmail(refreshToken) ?: throw InvalidRefreshToken()
+
+        logger.info("Generating new access token for $userEmail user")
+        return jwtTokenService.generateTokenForUser(userEmail, JwtTokenType.ACCESS)
     }
 }
