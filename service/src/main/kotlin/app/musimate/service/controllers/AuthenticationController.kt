@@ -1,5 +1,6 @@
 package app.musimate.service.controllers
 
+import app.musimate.service.config.SecurityParameters
 import app.musimate.service.dtos.auth.UserLoginDto
 import app.musimate.service.dtos.auth.AuthAccessTokenDto
 import app.musimate.service.dtos.auth.UserRegisterDto
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/auth/")
 class AuthenticationController(
     private val authService: AuthenticationService,
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
+    private val securityParameters: SecurityParameters
 ) {
 
     @PostMapping("/login")
@@ -65,8 +67,7 @@ class AuthenticationController(
 
         return Cookie(REFRESH_TOKEN_COOKIE, token).apply {
             isHttpOnly = true
-            // TODO: Set to true in production
-            secure = false
+            secure = securityParameters.secureHttpCookies
             path = "/"
             maxAge = jwtTokenService.refreshTokenDuration.inWholeSeconds.toInt()
         }

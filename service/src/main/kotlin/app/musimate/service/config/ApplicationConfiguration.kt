@@ -4,6 +4,7 @@ import app.musimate.service.repositories.UserRepository
 import app.musimate.service.utils.UserDetailsAdapter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
@@ -44,20 +45,5 @@ class ApplicationConfiguration(
             setUserDetailsService(userDetailsService())
             setPasswordEncoder(passwordEncoder())
         }
-    }
-
-    // TODO: Remove CORS disabling in production
-    @Bean
-    fun corsFilter(): CorsFilter {
-        val config = CorsConfiguration()
-        config.allowCredentials = true
-        config.addAllowedOriginPattern("*") // Use "*" to allow all origins
-        config.addAllowedHeader("*")
-        config.addAllowedMethod("*")
-
-        val source: UrlBasedCorsConfigurationSource = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", config)
-
-        return CorsFilter(source)
     }
 }
