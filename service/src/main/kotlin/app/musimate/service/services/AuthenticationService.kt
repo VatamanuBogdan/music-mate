@@ -4,7 +4,7 @@ import app.musimate.service.dtos.auth.UserLoginDto
 import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.exceptions.InvalidCredentialsException
 import app.musimate.service.exceptions.InvalidRefreshToken
-import app.musimate.service.exceptions.UnregisteredUserException
+import app.musimate.service.exceptions.InvalidUserException
 import app.musimate.service.exceptions.UserAlreadyRegisteredException
 import app.musimate.service.models.User
 import app.musimate.service.repositories.UserRepository
@@ -40,7 +40,7 @@ class AuthenticationService(
     fun login(user: UserLoginDto): Pair<JwtToken, JwtToken> {
 
         val entity = userRepository.findUserByEmail(user.email)
-            ?: throw UnregisteredUserException()
+            ?: throw InvalidUserException()
 
         if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
             logger.info("Logged in ${user.email} with success")

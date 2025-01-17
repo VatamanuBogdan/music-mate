@@ -1,28 +1,28 @@
 package app.musimate.service.exceptions
 
+import app.musimate.service.dtos.ApiErrorCode
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 
-@ResponseStatus(
-    value = HttpStatus.BAD_REQUEST,
-    reason = "On this email there is registered another account"
+class UserAlreadyRegisteredException : ApiException(
+    statusCode = HttpStatus.NOT_ACCEPTABLE,
+    errorCode = ApiErrorCode.ALREADY_EXISTS,
+    message = "On this email there is already registered another account"
 )
-class UserAlreadyRegisteredException: RuntimeException()
 
-@ResponseStatus(
-    value = HttpStatus.BAD_REQUEST,
-    reason = "Invalid credentials"
+class InvalidCredentialsException : ApiException(
+    statusCode = HttpStatus.BAD_REQUEST,
+    errorCode = ApiErrorCode.INVALID_CREDENTIALS,
+    message = "User credential are incorrect"
 )
-class InvalidCredentialsException: RuntimeException()
 
-@ResponseStatus(
-    value = HttpStatus.BAD_REQUEST,
-    reason = "User is not registered"
+class InvalidUserException : ApiException(
+    statusCode = HttpStatus.UNAUTHORIZED,
+    errorCode = ApiErrorCode.NOT_REGISTERED,
+    message = "User doesn't exist"
 )
-class UnregisteredUserException: RuntimeException()
 
-@ResponseStatus(
-    value = HttpStatus.FORBIDDEN,
-    reason = "Invalid refresh token"
+class InvalidRefreshToken : ApiException(
+    statusCode = HttpStatus.UNAUTHORIZED,
+    errorCode = ApiErrorCode.INVALID_REFRESH_TOKEN,
+    message = "Refresh token is expired or invalid"
 )
-class InvalidRefreshToken: RuntimeException()

@@ -1,8 +1,9 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.config.SecurityParameters
+import app.musimate.service.dtos.ApiSuccessResponse
 import app.musimate.service.dtos.auth.UserLoginDto
-import app.musimate.service.dtos.auth.AuthAccessTokenDto
+import app.musimate.service.dtos.auth.AuthTokenDto
 import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.JwtTokenService
@@ -24,18 +25,14 @@ class AuthenticationController(
     @ResponseStatus(HttpStatus.ACCEPTED)
     fun login(@Valid @RequestBody body: UserLoginDto,
               response: HttpServletResponse
-    ): AuthAccessTokenDto {
+    ): AuthTokenDto {
 
         val (refreshToken, accessToken) = authService.login(body)
 
         val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
         response.addCookie(refreshTokenCookie)
 
-        return AuthAccessTokenDto(
-            status = HttpStatus.OK,
-            message = "Login performed successfully",
-            authToken = accessToken
-        )
+        return AuthTokenDto(accessToken)
     }
 
     @PostMapping("/register")
@@ -53,14 +50,10 @@ class AuthenticationController(
     @ResponseStatus(HttpStatus.CREATED)
     fun refreshAccessToken(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String
-    ): AuthAccessTokenDto {
+    ): AuthTokenDto {
 
         val token = authService.refreshAccessToken(refreshToken)
-        return AuthAccessTokenDto(
-            status = HttpStatus.CREATED,
-            message = "Refreshed new access token",
-            authToken = token
-        )
+        return AuthTokenDto(token)
     }
 
     private fun createCookieForRefreshToken(token: String): Cookie {
