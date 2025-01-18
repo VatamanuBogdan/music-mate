@@ -7,28 +7,28 @@ import { IdentifiableValue } from "../utils/utils";
 import logo from '../assets/logo.png'
 
 enum AuthenticationType {
-    LOGIN,
-    REGISTER
+    SIGN_IN,
+    SIGN_UP
 }
 
-const authenticationTypeItems: IdentifiableValue<AuthenticationType, string>[] = [
-    { id: AuthenticationType.LOGIN, value: 'Login' },
-    { id: AuthenticationType.REGISTER, value: 'Register' }
+const authTypeItems: IdentifiableValue<AuthenticationType, string>[] = [
+    { id: AuthenticationType.SIGN_IN, value: 'Sign In' },
+    { id: AuthenticationType.SIGN_UP, value: 'Sign Up' }
 ]
 
-const authenticationTypePaths: Record<AuthenticationType, string> = {
-    [AuthenticationType.LOGIN]: '/login',
-    [AuthenticationType.REGISTER]: '/register'
+const authTypePaths: Record<AuthenticationType, string> = {
+    [AuthenticationType.SIGN_IN]: '/login',
+    [AuthenticationType.SIGN_UP]: '/register'
 };
 
 export default function AuthenticationLayout() {
 
-    const [selectedAuthenticationType, setAuthenticationType] = useState<number>(0);
-    const navigateTo = useNavigate();
+    const [selectedAuthType, setAuthenticationType] = useState<number>(0);
+    const navigate = useNavigate();
 
-    function changeAuthenticationType(type: AuthenticationType) {
+    function changeAuthType(type: AuthenticationType) {
         setAuthenticationType(type);
-        navigateTo(authenticationTypePaths[type])
+        navigate(authTypePaths[type])
     }
 
     return (
@@ -49,9 +49,9 @@ export default function AuthenticationLayout() {
                     </h1>
 
                     <ToggleGroup
-                        items={authenticationTypeItems}
-                        selectedItemId={selectedAuthenticationType}
-                        onChange={changeAuthenticationType} />
+                        items={authTypeItems}
+                        selectedItemId={selectedAuthType}
+                        onChange={changeAuthType} />
 
                     <Outlet/>
                 </div>
