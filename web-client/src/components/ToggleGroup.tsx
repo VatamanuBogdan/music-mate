@@ -1,24 +1,23 @@
 import { IdentifiableValue } from '../utils/utils';
 
-interface Props<ItemId> {
-    items: IdentifiableValue<ItemId, string>[]
-    selectedItemId: ItemId,
-    onChange: (id: ItemId) => void
+interface ToggleGroupProps {
+    items: IdentifiableValue<React.Key, string>[]
+    selectedItemId: React.Key,
+    onChange: (id: React.Key) => void
 }
 
-export default function ToggleGroup<ItemId> (props: Props<ItemId>) {
+export default function ToggleGroup({ items, selectedItemId, onChange }: ToggleGroupProps) {
 
-
-    const itemBaseClassName = 'transition ease-in-out duration-500 px-6 py-2 w-32'
+    const itemBaseClassName = 'transition ease-in-out duration-500 px-3 py-2 w-28'
     const selectedItemClassName = itemBaseClassName + ' bg-teal-500'
 
     return (
-        <div className='text-zinc-100 text-lg font-medium border-2 border-teal-500 rounded-full overflow-hidden'>
+        <div className='text-zinc-100 text-base font-medium border-2 border-teal-500 rounded-full overflow-hidden'>
             {
-                props.items.map((item) => (
-                    <button 
-                        className={item.id == props.selectedItemId ? selectedItemClassName : itemBaseClassName}
-                        onClick={() => props.onChange(item.id)}>
+                items.map((item) => (
+                    <button key={item.id}
+                        className={item.id == selectedItemId ? selectedItemClassName : itemBaseClassName}
+                        onClick={() => onChange(item.id)}>
                         
                         {item.value}
                     </button>
