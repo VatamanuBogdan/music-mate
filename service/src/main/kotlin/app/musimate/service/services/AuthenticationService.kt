@@ -37,7 +37,7 @@ class AuthenticationService(
             return principal.user
         }
 
-    fun login(user: UserLoginDto): Pair<JwtToken, JwtToken> {
+    fun signIn(user: UserLoginDto): Pair<JwtToken, JwtToken> {
 
         val entity = userRepository.findUserByEmail(user.email)
             ?: throw InvalidUserException()
@@ -54,7 +54,7 @@ class AuthenticationService(
         }
     }
 
-    fun register(user: UserRegisterDto) {
+    fun signUp(user: UserRegisterDto) {
 
         if (userRepository.existsByEmail(user.email)) {
             logger.info("Failed to register ${user.email} because the email is already used")

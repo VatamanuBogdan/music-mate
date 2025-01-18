@@ -1,7 +1,6 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.config.SecurityParameters
-import app.musimate.service.dtos.ApiSuccessResponse
 import app.musimate.service.dtos.auth.UserLoginDto
 import app.musimate.service.dtos.auth.AuthTokenDto
 import app.musimate.service.dtos.auth.UserRegisterDto
@@ -21,13 +20,13 @@ class AuthenticationController(
     private val securityParameters: SecurityParameters
 ) {
 
-    @PostMapping("/login")
+    @PostMapping("/signin")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun login(@Valid @RequestBody body: UserLoginDto,
-              response: HttpServletResponse
+    fun signIn(@Valid @RequestBody body: UserLoginDto,
+               response: HttpServletResponse
     ): AuthTokenDto {
 
-        val (refreshToken, accessToken) = authService.login(body)
+        val (refreshToken, accessToken) = authService.signIn(body)
 
         val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
         response.addCookie(refreshTokenCookie)
@@ -35,14 +34,14 @@ class AuthenticationController(
         return AuthTokenDto(accessToken)
     }
 
-    @PostMapping("/register")
+    @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    fun register(@Valid @RequestBody body: UserRegisterDto) {
-        authService.register(body)
+    fun signUp(@Valid @RequestBody body: UserRegisterDto) {
+        authService.signUp(body)
     }
 
-    @PostMapping("/logout")
-    fun logout() {
+    @PostMapping("/signout")
+    fun signOut() {
         throw NotImplementedError("The logout endpoint is not implemented")
     }
 
