@@ -1,25 +1,36 @@
-type HttpStatus = string;
+import { ApiError } from "./errors";
 
-interface ResponseDtoWrapper<D> {
-    status: HttpStatus,
-    message: string,
+type ApiStatus = 'success' | 'error';
+
+interface ApiResponseBase {
+    status: ApiStatus,
+    statusCode: number
+}
+
+export interface ApiSuccessResponse<D> extends ApiResponseBase {
+    status: 'success',
     data: D
 }
 
-interface UserCredentialsDto {
+export interface ApiErrorResponse extends ApiResponseBase {
+    status: 'error',
+    error: ApiError
+}
+
+export type ApiResponse<D> = ApiSuccessResponse<D> | ApiErrorResponse;
+
+export type ApiResponsePromise<D> = Promise<ApiResponse<D>>;
+export type ApiSuccessResponsePromise<D> = Promise<ApiSuccessResponse<D>>;
+export type ApiErrorResponsePromise = Promise<ApiErrorResponse>;
+
+export interface CredentialsDto {
     email: string,
     password: string
 }
 
-interface TokenDto {
-    authToken: {
-        type: string,
-        value: string
-    }
-}
+export type AuthTokenType = 'ACCESS' | 'REFRESH';
 
-export type {
-    ResponseDtoWrapper,
-    UserCredentialsDto,
-    TokenDto
+export interface AuthTokenDto {
+    type: AuthTokenType,
+    value: string
 }

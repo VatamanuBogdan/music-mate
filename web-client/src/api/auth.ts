@@ -1,41 +1,29 @@
-import { AxiosError } from "axios";
-import { apiClient } from "./client"
-import { UserCredentialsDto, TokenDto, ResponseDtoWrapper } from "./dtos";
+import { requestApi } from "./client"
+import { CredentialsDto, AuthTokenDto } from "./dtos";
 
-const BASE_PATH = 'auth';
-const LOGIN_ENDPOINT = `${BASE_PATH}/login`;
+const ENDPOINT_BASE = 'auth';
 
-
-async function loginUser(credentials: UserCredentialsDto): Promise<TokenDto> {
-
-    try {
-        const response = await apiClient.post<ResponseDtoWrapper<TokenDto>>(LOGIN_ENDPOINT, credentials);
-        return response.data.data;
-    } catch (error) {
-        if (error instanceof AxiosError && error.status == 403) {
-            throw new AuthError('INVALID_CREDENTIALS')    
-        }
-        throw new AuthError('UNKNOWN')    
+async function signIn(credentials: CredentialsDto): Promise<AuthTokenDto> {
+    const config = {
+        method: 'post',
+        url: `${ENDPOINT_BASE}/signin`,
+        data: credentials,
+        withCredentials: true
     }
+
+    return requestApi<AuthTokenDto>(config);
 }
 
-type ErrorName =
-    | 'INVALID_CREDENTIALS'
-    | 'UNKNOWN'
-
-class AuthError extends Error {
-    name: ErrorName;
-    message: string;
-    cause?: Error
-
-    constructor(name: ErrorName, message: string = '', cause?: Error) {
-        super();
-        this.name = name;
-        this.message = message;
-        this.cause = cause
+async function refreshAccessToken(): Promise<AuthTokenDto> {
+    const config = {
+        method: 'get',
+        url: `${ENDPOINT_BASE}/refresh`,
+        withCredentials: true
     }
+
+    return requestApi<AuthTokenDto>(config);
 }
 
 export default {
-    login: loginUser
+    signIn, refreshAccessToken
 }
