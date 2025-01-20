@@ -1,3 +1,5 @@
+import { Duration } from "./types";
+
 interface Identifiable<I> {
     id: I
 }
