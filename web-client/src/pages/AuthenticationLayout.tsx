@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Outlet, useNavigate } from "react-router";
 
 import ToggleGroup from '../components/ToggleGroup';
-import { IdentifiableValue } from "../utils/utils";
+import { IdentifiableValue } from "../utils/helpers";
 
 import logo from '../assets/logo.png'
 

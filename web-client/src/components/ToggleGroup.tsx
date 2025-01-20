@@ -1,4 +1,4 @@
-import { IdentifiableValue } from '../utils/utils';
+import { IdentifiableValue } from '../utils/helpers';
 
 interface ToggleGroupProps {
     items: IdentifiableValue<React.Key, string>[]
