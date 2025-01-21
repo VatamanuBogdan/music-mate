@@ -9,7 +9,7 @@ internal fun User(dto: UserRegisterDto, passwordEncoder: PasswordEncoder) =
     User(
         id = null,
         firstName = dto.firstName,
-        secondName = dto.secondName,
+        lastName = dto.secondName,
         username = "${dto.firstName} ${dto.secondName}",
         hashedPassword = passwordEncoder.encode(dto.password),
         email = dto.email,

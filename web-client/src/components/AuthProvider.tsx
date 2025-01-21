@@ -1,12 +1,16 @@
 import { createContext, PropsWithChildren, useContext, useEffect, useLayoutEffect, useState } from "react";
 import { apiClient } from "../api/client";
 import AuthApi from "../api/auth";
-import { AxiosHeaders, AxiosRequestConfig } from "axios";
+import { AxiosRequestConfig } from "axios";
 import { ApiErrorResponse } from "../api/dtos";
+import { Account } from "../types/Account";
+import { applyAccessTokenTo } from "../utils/helpers";
 
-type AuthContextInterface = {
+interface AuthContextInterface {
     isSignedIn: boolean,
+    acccount: Account | null
     signIn: (email: string, password: string) => Promise<boolean>
+    signOut: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextInterface | undefined>(undefined);
@@ -19,6 +23,20 @@ export const useAuth = () => {
     }
 
     return context;
+}
+
+export const useAccount = () => {
+    const context = useContext(AuthContext);
+
+    if (context === undefined) {
+        throw Error('useAccount must be used within an AuthProvider')
+    }
+
+    if (!context.isSignedIn || !context.acccount) {
+        throw Error('useAccount must be used within a logged in context')
+    }
+
+    return context.acccount as Account;
 }
 
 type AuthProviderProps = PropsWithChildren;
@@ -53,11 +71,13 @@ async function refreshAccessToken(): Promise<string | null> {
 export function AuthProvider({ children }: AuthProviderProps) {
     
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [acccount, setAccount] = useState<Account | null>(null);
 
-    async function signIn(email: string, password: string) {
+    async function signIn(email: string, password: string): Promise<boolean> {
         try {
-            const authToken = await AuthApi.signIn({ email, password });
-            setAccessToken(authToken.value);
+            const authentication = await AuthApi.signIn({ email, password });
+            setAccessToken(authentication.token.value);
+            setAccount(authentication.infos);
             console.log('Sign in succeded');
             return true;
         } catch(error) {
@@ -66,10 +86,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     }
 
+    async function signOut(): Promise<boolean> {
+        try {
+            await AuthApi.signOut()
+            setAccessToken(null);
+            setAccount(null);
+            console.log('Sign out succeded')
+        } catch(error) {
+            console.error(`Sign out failed ${error}`)
+            return false;
+        }
+
+        return true;
+    }
+
     useEffect(() => {
-        (async () => { 
+        (async () => {           
             const newAccessToken = await refreshAccessToken();
-            setAccessToken(newAccessToken); 
+            if (!newAccessToken) {
+                return;
+            }
+
+            try {
+                const account = await AuthApi.fetchAccountInfos(newAccessToken);
+                setAccessToken(newAccessToken);
+                setAccount(account);
+            } catch(error) {
+                console.log(`Failed to fetch current account infos ${error}`)
+            }
         })();
     }, []);
 
@@ -78,7 +122,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const interceptor = apiClient.interceptors.request.use((config) => {
 
             if (accessToken !== null && !config.headers.Authorization) {
-                config.headers.Authorization = `Bearer ${accessToken}`
+                applyAccessTokenTo(accessToken, config);
             }
             return config;
         });
@@ -104,12 +148,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 setAccessToken(newAccessToken);
 
                 if (newAccessToken) {
-                    if (!initialRequest.headers) {
-                        initialRequest.headers = new AxiosHeaders();
-                    }
-
-                    initialRequest.headers.Authorization = `Bearer ${accessToken}`;
-                    return apiClient(initialRequest)
+                    applyAccessTokenTo(newAccessToken, initialRequest);
+                    return apiClient(initialRequest);
                 }
         });
 
@@ -118,13 +158,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         };
     });
 
-    const value: AuthContextInterface = { 
-        isSignedIn: accessToken != null,
-        signIn: signIn 
+    const contextValue: AuthContextInterface = { 
+        isSignedIn: accessToken != null && acccount != null,
+        acccount,
+        signIn,
+        signOut
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     )
