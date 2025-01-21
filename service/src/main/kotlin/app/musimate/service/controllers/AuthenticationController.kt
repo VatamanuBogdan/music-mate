@@ -1,6 +1,7 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.config.SecurityParameters
+import app.musimate.service.dtos.ApiSuccessResponse
 import app.musimate.service.dtos.auth.*
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.JwtTokenService
@@ -38,8 +39,12 @@ class AuthenticationController(
     }
 
     @PostMapping("/signout")
-    fun signOut() {
-        throw NotImplementedError("The logout endpoint is not implemented")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    fun signOut(response: HttpServletResponse): ApiSuccessResponse {
+
+        val refreshTokenRemovalCookie = createCookieForRefreshTokenRemoval()
+        response.addCookie(refreshTokenRemovalCookie)
+        return ApiSuccessResponse(HttpStatus.ACCEPTED.value())
     }
 
     @GetMapping("/refresh")
@@ -65,6 +70,15 @@ class AuthenticationController(
             secure = securityParameters.secureHttpCookies
             path = "/"
             maxAge = jwtTokenService.refreshTokenDuration.inWholeSeconds.toInt()
+        }
+    }
+
+    private fun createCookieForRefreshTokenRemoval(): Cookie {
+        return Cookie(REFRESH_TOKEN_COOKIE, null).apply {
+            isHttpOnly = true
+            secure = securityParameters.secureHttpCookies
+            path = "/"
+            maxAge = 0
         }
     }
 

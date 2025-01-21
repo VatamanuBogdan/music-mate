@@ -10,6 +10,7 @@ interface AuthContextInterface {
     isSignedIn: boolean,
     acccount: Account | null
     signIn: (email: string, password: string) => Promise<boolean>
+    signOut: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextInterface | undefined>(undefined);
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [accessToken, setAccessToken] = useState<string | null>(null);
     const [acccount, setAccount] = useState<Account | null>(null);
 
-    async function signIn(email: string, password: string) {
+    async function signIn(email: string, password: string): Promise<boolean> {
         try {
             const authentication = await AuthApi.signIn({ email, password });
             setAccessToken(authentication.token.value);
@@ -83,6 +84,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
             console.error(`Sign in failed ${error}`);
             return false;
         }
+    }
+
+    async function signOut(): Promise<boolean> {
+        try {
+            await AuthApi.signOut()
+            setAccessToken(null);
+            setAccount(null);
+            console.log('Sign out succeded')
+        } catch(error) {
+            console.error(`Sign out failed ${error}`)
+            return false;
+        }
+
+        return true;
     }
 
     useEffect(() => {
@@ -145,8 +160,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const contextValue: AuthContextInterface = { 
         isSignedIn: accessToken != null && acccount != null,
-        acccount: acccount,
-        signIn: signIn,
+        acccount,
+        signIn,
+        signOut
     };
 
     return (

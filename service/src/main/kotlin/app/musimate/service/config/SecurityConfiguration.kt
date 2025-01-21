@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.CorsFilter
 
+
 @Configuration
 @EnableWebSecurity
 class SecurityConfiguration(
@@ -21,9 +22,14 @@ class SecurityConfiguration(
 ) {
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity, securityParameters: SecurityParameters): SecurityFilterChain {
 
         http
+            .cors {
+                if (!securityParameters.enableCors) {
+                    it.disable()
+                }
+            }
             .csrf {
                 it.disable()
             }
@@ -49,14 +55,14 @@ class SecurityConfiguration(
     @Bean
     @Profile("dev")
     fun securityParametersDev() = SecurityParameters(
-        disableCors = true,
+        enableCors = true,
         secureHttpCookies = false
     )
 
     @Bean
     @Profile("prod")
     fun securityParametersProd() = SecurityParameters(
-        disableCors = false,
+        enableCors = false,
         secureHttpCookies = true
     )
 
@@ -77,7 +83,10 @@ class SecurityConfiguration(
 
     companion object {
         val WHITE_LISTED_PATHS = arrayOf(
-            "/api/auth/**"
+            "/api/auth/signin",
+            "/api/auth/signup",
+            "/api/auth/refresh",
+            "/api/auth/signout"
         )
     }
 }

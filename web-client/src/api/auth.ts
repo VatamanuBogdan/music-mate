@@ -15,6 +15,16 @@ async function signIn(credentials: CredentialsDto): Promise<AuthenticationDto> {
     return requestApi<AuthenticationDto>(config);
 }
 
+async function signOut(): Promise<void> {
+    const config = {
+        method: 'post',
+        url: `${ENDPOINT_BASE}/signout`,
+        withCredentials: true
+    }
+
+    return requestApi<void>(config);
+}
+
 async function refreshAccessToken(): Promise<AuthTokenDto> {
     const config = {
         method: 'get',
@@ -39,5 +49,5 @@ async function fetchAccountInfos(accessToken?: string): Promise<AccountInfosDto>
 }
 
 export default {
-    signIn, refreshAccessToken, fetchAccountInfos
+    signIn, signOut, refreshAccessToken, fetchAccountInfos
 }

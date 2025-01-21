@@ -23,6 +23,7 @@ export async function requestApi<T>(config: AxiosRequestConfig): Promise<T> {
         if (error instanceof AxiosError) {
             throw error.response?.data;
         } else {
+            console.error(`Malformed API response ${error}`);
             throw error;
         }
     }
