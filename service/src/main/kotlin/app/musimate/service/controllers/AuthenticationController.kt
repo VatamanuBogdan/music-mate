@@ -1,9 +1,7 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.config.SecurityParameters
-import app.musimate.service.dtos.auth.UserLoginDto
-import app.musimate.service.dtos.auth.AuthTokenDto
-import app.musimate.service.dtos.auth.UserRegisterDto
+import app.musimate.service.dtos.auth.*
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.JwtTokenService
 import jakarta.servlet.http.Cookie
@@ -22,16 +20,15 @@ class AuthenticationController(
 
     @PostMapping("/signin")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    fun signIn(@Valid @RequestBody body: UserLoginDto,
+    fun signIn(@Valid @RequestBody body: CredentialsDto,
                response: HttpServletResponse
-    ): AuthTokenDto {
-
-        val (refreshToken, accessToken) = authService.signIn(body)
+    ): AuthenticationDto {
+        val (refreshToken, authentication) = authService.signIn(body)
 
         val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
         response.addCookie(refreshTokenCookie)
 
-        return AuthTokenDto(accessToken)
+        return authentication
     }
 
     @PostMapping("/signup")
@@ -51,8 +48,14 @@ class AuthenticationController(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String
     ): AuthTokenDto {
 
-        val token = authService.refreshAccessToken(refreshToken)
-        return AuthTokenDto(token)
+        return authService.refreshAccessToken(refreshToken)
+    }
+
+    @GetMapping("/account")
+    @ResponseStatus(HttpStatus.OK)
+    fun fetchAccountInfos(): AccountInfosDto {
+
+        return authService.currentAccountInfos
     }
 
     private fun createCookieForRefreshToken(token: String): Cookie {

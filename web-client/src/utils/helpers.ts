@@ -1,11 +1,20 @@
+import { AxiosHeaders, AxiosRequestConfig } from "axios";
 import { Duration } from "./types";
 
-interface Identifiable<I> {
+export interface Identifiable<I> {
     id: I
 }
 
-interface IdentifiableValue<I, V> extends Identifiable<I> {
+export interface IdentifiableValue<I, V> extends Identifiable<I> {
     value: V
+}
+
+export function applyAccessTokenTo(accessToken: string, requestConfig: AxiosRequestConfig) {
+    if (!requestConfig.headers) {
+        requestConfig.headers = new AxiosHeaders()
+    }
+
+    requestConfig.headers.Authorization = `Bearer ${accessToken}`
 }
 
 export function isNumber(value: unknown): boolean {
@@ -41,9 +50,4 @@ export function formatPlayerDuration(duration: Duration | number): string {
     } else {
         return `${formattedMinutes}:${formattedSeconds}`;
     }
-}
-
-export type {
-    Identifiable,
-    IdentifiableValue
 }

@@ -14,7 +14,7 @@ data class User(
     var firstName: String,
 
     @Column(name = "second_name", nullable = false)
-    var secondName: String,
+    var lastName: String,
 
     @Column(nullable = false)
     var username: String,

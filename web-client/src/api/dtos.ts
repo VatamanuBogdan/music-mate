@@ -34,3 +34,15 @@ export interface AuthTokenDto {
     type: AuthTokenType,
     value: string
 }
+
+export interface AccountInfosDto {
+    email: string,
+    username: string,
+    firstName: string,
+    lastName: string
+}
+
+export interface AuthenticationDto {
+    token: AuthTokenDto,
+    infos: AccountInfosDto
+}

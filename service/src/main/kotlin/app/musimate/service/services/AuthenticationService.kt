@@ -1,6 +1,8 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.auth.UserLoginDto
+import app.musimate.service.dtos.auth.AccountInfosDto
+import app.musimate.service.dtos.auth.AuthenticationDto
+import app.musimate.service.dtos.auth.CredentialsDto
 import app.musimate.service.dtos.auth.UserRegisterDto
 import app.musimate.service.exceptions.InvalidCredentialsException
 import app.musimate.service.exceptions.InvalidRefreshToken
@@ -37,7 +39,10 @@ class AuthenticationService(
             return principal.user
         }
 
-    fun signIn(user: UserLoginDto): Pair<JwtToken, JwtToken> {
+    val currentAccountInfos: AccountInfosDto
+        get() { return AccountInfosDto(authenticatedUser) }
+
+    fun signIn(user: CredentialsDto): Pair<JwtToken, AuthenticationDto> {
 
         val entity = userRepository.findUserByEmail(user.email)
             ?: throw InvalidUserException()
@@ -48,7 +53,12 @@ class AuthenticationService(
             val refreshToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.REFRESH)
             val accessToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.ACCESS)
 
-            return Pair(refreshToken, accessToken)
+            val authenticationDto = AuthenticationDto(
+                infos = AccountInfosDto(entity),
+                token = accessToken
+            )
+
+            return Pair(refreshToken, authenticationDto)
         } else {
             throw InvalidCredentialsException()
         }
