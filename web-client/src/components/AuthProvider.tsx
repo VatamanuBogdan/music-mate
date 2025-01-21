@@ -54,6 +54,7 @@ async function refreshAccessToken(): Promise<string | null> {
                 const accessToken = await AuthApi.refreshAccessToken();
                 if (accessToken.value === '') {
                     console.warn('Refreshed access token is empty');
+                } else {
                     accessTokenValue = accessToken.value;
                 }
             } catch(error) {
