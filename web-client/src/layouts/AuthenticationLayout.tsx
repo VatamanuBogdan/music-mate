@@ -5,6 +5,7 @@ import ToggleGroup from '../components/ToggleGroup';
 import { IdentifiableValue } from "../utils/helpers";
 
 import logo from '../assets/logo.png'
+import MusicMateLogo from "../components/MusicMateLogo";
 
 enum AuthenticationType {
     SIGN_IN,
@@ -37,7 +38,7 @@ export default function AuthenticationLayout() {
                 <img src={logo} className='max-w-sm' />
                 
                 <div className='relative space-y-2 drop-shadow-md'>
-                    <h1 className='px-4 py-2 text-8xl font-bold border-2 border-slate-800 rounded-md'> Music Mate </h1> 
+                    <MusicMateLogo size="lg" /> 
                     <h2 className='ml-6 text-2xl font-medium'> Your personal music companion </h2>
                 </div>
             </div>
