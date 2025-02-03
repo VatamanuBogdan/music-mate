@@ -11,6 +11,7 @@ import { AuthProvider } from './components/AuthProvider';
 import HomeLayout from './layouts/HomeLayout';
 import { HeroUIProvider } from '@heroui/react';
 import ProtectedRoute from './components/ProtectedRoute';
+import YoutubeTracksPage from './pages/YoutubeTracksPage';
 
 function RootProviders({ children }: PropsWithChildren) {
     return (
@@ -41,7 +42,7 @@ createRoot(document.getElementById('root')!).render(
             
                         <Route index element={<div> Index </div>} />
                         <Route path='spotify' element={<div> Spotify </div>} />
-                        <Route path='youtube' element={<div> Youtube </div>} />
+                        <Route path='youtube' element={<YoutubeTracksPage />} />
                         <Route path='mixed' element={<div> Mixed </div>} />
                     </Route>
                 </Routes>

@@ -46,3 +46,9 @@ export interface AuthenticationDto {
     token: AuthTokenDto,
     infos: AccountInfosDto
 }
+
+export interface PlaylistDto {
+    id: number
+    name: string
+    tracksCount: number
+}

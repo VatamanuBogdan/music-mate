@@ -6,9 +6,13 @@ export default function AccountAvatar() {
     const account = useAccount();
 
     return (
-        <Popover placement="bottom-end">
+        <Popover showArrow placement="bottom-end">
             <PopoverTrigger className="cursor-pointer">
-                <Avatar isBordered name={account.firstName} className="w-10 h-10 m-2 text-xs" />
+                <Avatar 
+                    isBordered
+                    size="lg"
+                    color="success"
+                    className="m-2 bg-slate-800 bg-opacity-70" />
             </PopoverTrigger>
 
             <PopoverContent className="px-4 py-2">

@@ -33,7 +33,7 @@ export default function PlayerControls({
                     className={playButtonsClassName}
                     radius='full' 
                     isIconOnly
-                    onChange={onBackwardTap}
+                    onPress={onBackwardTap}
                     >
                     <IoMdSkipBackward size={skipButtonSize}/>
                 </Button>
@@ -42,7 +42,7 @@ export default function PlayerControls({
                     className={playButtonsClassName} 
                     radius='full' 
                     isIconOnly 
-                    onChange={onPlayTap}
+                    onPress={onPlayTap}
                     >
                     
                     <IoPlayCircleSharp size={playButtonSize} />
@@ -52,7 +52,7 @@ export default function PlayerControls({
                     className={playButtonsClassName}
                     radius='full' 
                     isIconOnly
-                    onChange={onForwardTap}
+                    onPress={onForwardTap}
                     >
                     <IoMdSkipForward size={skipButtonSize}/>
                 </Button>
