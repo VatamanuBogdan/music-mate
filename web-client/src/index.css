@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html, body {
+      @apply overflow-x-hidden;
+      @apply overflow-y-hidden;
+    }
+}
+
+.scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: #162e49 #662e2e00;
+}
