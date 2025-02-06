@@ -41,6 +41,12 @@ export function formatPlaylistDuration(seconds: number): string {
     }
 }
 
+export function formatTrackDuration(seconds: number): string {
+    const { hours: h, minutes: m, seconds: s } = transformSeconds(seconds);
+
+    return `${h > 0 ? ` ${h}h` : ''} ${m > 0 ? ` ${m}m` : ''} ${s > 0 ? ` ${s}s` : ''}`;
+}
+
 export function formatPlayerDuration(duration: Duration | number): string {
     let d: Duration;
     if (isNumber(duration)) {

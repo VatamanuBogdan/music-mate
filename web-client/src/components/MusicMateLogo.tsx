@@ -2,23 +2,27 @@
 type MusicMateLogoSize = 'sm' | 'md' | 'lg'
 
 interface MusicMateLogoProps {
-    size: MusicMateLogoSize
+    size: MusicMateLogoSize;
+    theme?: 'dark' | 'light';
 }
 
 function getClassesBySize(size: MusicMateLogoSize): string {
     switch (size) {
         case 'sm':
-            return 'px-3 py-1 text-4xl';
+            return 'px-3 py-1 border-3 text-4xl';
         case 'md':
-            return 'px-4 py-2 text-6xl';
+            return 'px-4 py-2 border-2 text-6xl';
         case 'lg':
-            return 'px-4 py-2 text-8xl';
+            return 'px-4 py-2 border-2 text-8xl';
     }
 }
 
-export default function MusicMateLogo({ size }: MusicMateLogoProps) {
+export default function MusicMateLogo({ size, theme }: MusicMateLogoProps) {
+    const textColor = theme === 'dark' ? 'text-slate-100' : 'text-slate-800' ;
+    const borderColor = theme === 'dark' ? 'border-slate-100' : 'border-slate-800';
+
     return (
-        <h1 className={`text-slate-900 ${getClassesBySize(size)} font-bold border-2 border-slate-800 rounded-md`}> 
+        <h1 className={`${textColor} ${getClassesBySize(size)} font-bold ${borderColor} rounded-md select-none`}> 
             Music Mate
         </h1> 
     )
