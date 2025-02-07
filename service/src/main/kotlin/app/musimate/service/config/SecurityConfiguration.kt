@@ -86,7 +86,8 @@ class SecurityConfiguration(
             "/api/auth/signin",
             "/api/auth/signup",
             "/api/auth/refresh",
-            "/api/auth/signout"
+            "/api/auth/signout",
+            "/api/dummy/**"
         )
     }
 }
