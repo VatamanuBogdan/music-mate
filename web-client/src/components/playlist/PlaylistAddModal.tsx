@@ -12,7 +12,6 @@ import {
 import playlistAddImage from 'assets/playlist-add-image.svg';
 import { useRef, useState } from 'react';
 
-
 interface AddPlaylistModalProps {
     isOpen: boolean;
     onOpenChange: () => void;

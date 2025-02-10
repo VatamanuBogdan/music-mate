@@ -1,8 +1,8 @@
 export interface Playlist {
-    id: string;
-    imageUrl: string;
+    id: number;
+    thumbnailUrl?: string;
     name: string;
     description?: string;
-    songsCount: number;
+    tracksCount: number;
     duration: number;
 }

@@ -10,7 +10,7 @@ interface PlaylistCardProps {
 export function PlaylistCard({ playlist }: PlaylistCardProps): JSX.Element {
     return (
         <div className="h-24 mx-2 flex justify-start items-center text-slate-100 bg-slate-800 backdrop-blur-md bg-opacity-85 rounded-lg cursor-pointer select-none">
-            <Image className="w-20 h-20 ml-2 z-0" radius="md" src={playlist.imageUrl} />
+            <Image className="w-20 h-20 ml-2 z-0" radius="md" src={playlist.thumbnailUrl} />
 
             <div className="flex-grow mx-3 -space-y-1">
                 <div className="flex-grow flex felx-row justify-between items-baseline">
@@ -24,7 +24,7 @@ export function PlaylistCard({ playlist }: PlaylistCardProps): JSX.Element {
 
                 <div className="flex-grow whitespace-nowrap flex felx-row justify-between items-baseline">
                     <div className="text-base">{playlist.description}</div>
-                    <div className="text-sm">{playlist.songsCount} songs</div>
+                    <div className="text-sm">{playlist.tracksCount} songs</div>
                 </div>
             </div>
         </div>
