@@ -1,15 +1,17 @@
-import { Spacer } from '@heroui/react';
+import { Spacer, useDisclosure } from '@heroui/react';
+import { PlaylistCard } from 'components/cards/PlaylistCard';
+import AddPlaylistModal from 'components/playlist/PlaylistAddModal';
+import PlaylistHeader from 'components/playlist/PlaylistsHeader';
+import { playlistMocks } from 'mocks/playlists';
 import { useState } from 'react';
-
-import { playlistMocks } from '../mocks/playlists';
-import { PlaylistCard } from './cards/PlaylistCard';
-import PlaylistHeader from './PlaylistsHeader';
-import { Playlist } from '../types/Playlist';
+import { Playlist } from 'types/Playlist';
 
 export default function PlaylistPanel(): JSX.Element {
     const [playlists] = useState<Playlist[]>(() => {
         return playlistMocks.concat(playlistMocks).concat(playlistMocks);
     });
+
+    const playlistAddModalDisc = useDisclosure();
 
     return (
         <div className="relative w-[30rem] bg-slate-800 bg-opacity-75 overflow-visible">
@@ -17,11 +19,18 @@ export default function PlaylistPanel(): JSX.Element {
                 <PlaylistHeader
                     height="h-20"
                     defaultSource="spotify"
+                    onAddPress={playlistAddModalDisc.onOpenChange}
                     onSourceChange={(s) => {
                         console.log(`Playlist source changed to ${s}`);
                     }}
                 />
             </div>
+
+            <AddPlaylistModal
+                isOpen={playlistAddModalDisc.isOpen}
+                onOpenChange={playlistAddModalDisc.onOpenChange}
+            />
+
             <ul className="max-h-[100vh] space-y-1 overflow-y-auto scrollbar">
                 <Spacer key={'leading-offset'} y={20} />
                 {playlists?.map((playlist) => (
