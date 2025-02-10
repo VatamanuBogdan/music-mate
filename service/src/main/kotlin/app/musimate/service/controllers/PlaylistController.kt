@@ -1,18 +1,27 @@
 package app.musimate.service.controllers
 
+import app.musimate.service.dtos.PaginatedResponse
+import app.musimate.service.dtos.PaginationQuery
+import app.musimate.service.dtos.playlist.PlaylistCreationDto
 import app.musimate.service.dtos.playlist.PlaylistDto
 import app.musimate.service.dtos.playlist.TrackDto
-import app.musimate.service.models.Playlist
 import app.musimate.service.models.User
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.PlaylistService
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import java.io.InputStream
 
 @RestController
 @RequestMapping("/api/playlists")
@@ -24,36 +33,35 @@ class PlaylistController(
     private val authenticatedUser: User
         get() = authService.authenticatedUser
 
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createPlaylist(@RequestBody body: PlaylistCreationDto): PlaylistDto {
+        return playlistService.createPlaylist(authenticatedUser, body)
+    }
+
     @GetMapping
-    fun fetchPlaylists(): List<PlaylistDto> =
-        playlistService.fetchPlaylists(authenticatedUser)
-
-    @GetMapping("/{playlistId}")
-    fun fetchPlaylistContent(@PathVariable playlistId: Int): List<TrackDto> {
-        TODO("NOT IMPLEMENTED")
+    @ResponseStatus(HttpStatus.OK)
+    fun fetchPlaylists(pageQuery: PaginationQuery): PaginatedResponse<PlaylistDto> {
+        val pageable = playlistService.fetchPlaylists(authenticatedUser, pageQuery)
+        return PaginatedResponse(pageable, pageQuery.order)
     }
 
-    @PostMapping("/{playlistName}")
-    fun createPlaylist(@PathVariable playlistName: String): PlaylistDto =
-        playlistService.createPlaylist(authenticatedUser, playlistName)
-
-    @PostMapping("/{playlistId}/tracks")
-    fun addTrack(
-        @PathVariable playlistId: String,
-        @RequestBody body: TrackDto,
-    ): String {
-        TODO("NOT IMPLEMENTED")
+    @PutMapping("/thumbnails")
+    @ResponseStatus(HttpStatus.OK)
+    fun updateThumbnail(
+        @RequestParam(name = "id") playlistId: Int,
+        dataStream: InputStream
+    ) {
+        playlistService.updateThumbnail(playlistId, dataStream)
     }
 
-    @DeleteMapping("/{playlistId}")
-    fun removePlaylist(@PathVariable playlistId: Int) =
-        playlistService.removePlaylist(authenticatedUser, playlistId)
-
-    @DeleteMapping("/{playlistId}/tracks/{trackId}")
-    fun removeTrack(
-        @PathVariable playlistId: String,
-        @PathVariable trackId: String
-    ): String {
-        TODO("NOT IMPLEMENTED")
+    @GetMapping(
+        value = ["/thumbnails"],
+        produces = [MediaType.IMAGE_JPEG_VALUE]
+    )
+    fun fetchThumbnail(@RequestParam(name = "id") playlistId: Int): InputStreamResource {
+        val inputStream = playlistService.fetchThumbnail(playlistId)
+        val resource = InputStreamResource(inputStream)
+        return resource
     }
 }

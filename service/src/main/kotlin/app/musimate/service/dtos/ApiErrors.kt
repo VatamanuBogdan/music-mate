@@ -8,6 +8,7 @@ enum class ApiErrorCode {
     ALREADY_EXISTS,
     INVALID_CREDENTIALS,
     INVALID_REFRESH_TOKEN,
+    INVALID_ID,
     UNKNOWN
 }
 
