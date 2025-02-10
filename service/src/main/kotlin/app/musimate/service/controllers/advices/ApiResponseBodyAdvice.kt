@@ -6,6 +6,7 @@ import app.musimate.service.dtos.ApiResponse
 import app.musimate.service.dtos.ApiSuccessResponse
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
+import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.converter.HttpMessageConverter
@@ -14,6 +15,7 @@ import org.springframework.http.server.ServerHttpResponse
 import org.springframework.http.server.ServletServerHttpResponse
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice
+import java.io.InputStream
 
 @RestControllerAdvice
 class ApiResponseBodyAdvice: ResponseBodyAdvice<Any> {
@@ -38,6 +40,7 @@ class ApiResponseBodyAdvice: ResponseBodyAdvice<Any> {
         }
 
         return when (body) {
+            is InputStreamResource -> body
             is ApiResponse -> body
             is ApiError -> {
                 if (statusCode == null) {

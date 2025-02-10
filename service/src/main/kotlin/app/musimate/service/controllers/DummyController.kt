@@ -1,15 +1,18 @@
 package app.musimate.service.controllers
 
+import app.musimate.service.services.ImageService
 import io.minio.*
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.io.InputStream
 
 @RestController
 @RequestMapping("/api/dummy")
 class DummyController(
-    private val minioClient: MinioClient
+    private val minioClient: MinioClient,
+    private val imageService: ImageService
 ) {
 
     @GetMapping("/hello")

@@ -1,5 +1,6 @@
 package app.musimate.service.config
 
+import app.musimate.service.utils.MinIOClientHelper
 import io.minio.MinioClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -22,5 +23,10 @@ class MinIOConfiguration {
             .endpoint(url)
             .credentials(username, password)
             .build()
+    }
+
+    @Bean
+    fun minioClientHelper(client: MinioClient): MinIOClientHelper {
+        return MinIOClientHelper(client)
     }
 }
