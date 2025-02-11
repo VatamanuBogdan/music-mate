@@ -15,6 +15,7 @@ import { useRef, useState } from 'react';
 interface AddPlaylistModalProps {
     isOpen: boolean;
     onOpenChange: () => void;
+    onClose?: () => void;
 }
 
 export default function AddPlaylistModal({
@@ -24,79 +25,109 @@ export default function AddPlaylistModal({
     const [playlistTitle, setPlaylistTitle] = useState('');
     const [playlistDescription, setPlaylistDescription] = useState('');
 
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    function onPlaylistImageUpload() {
-        fileInputRef.current?.click();
+    function onPlaylistImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+        const thumbnailFile = event.target.files?.[0];
+        if (!thumbnailFile) {
+            return;
+        }
+
+        const fileReader = new FileReader();
+        fileReader.onloadend = () => {
+            setThumbnailPreview(fileReader.result as string);
+        };
+        fileReader.readAsDataURL(thumbnailFile);
+    }
+
+    function onClose() {
+        setPlaylistTitle('');
+        setPlaylistDescription('');
+        setThumbnailPreview(null);
     }
 
     return (
         <Modal
             isOpen={isOpen}
             onOpenChange={onOpenChange}
+            onClose={onClose}
             size="xl"
             backdrop="blur"
             hideCloseButton
             isDismissable={false}
         >
             <ModalContent>
-                {() => (
+                {(onClose) => (
                     <>
-                        <ModalHeader className="flex flex-row justify-between items-end px-12">
+                        <ModalHeader>
                             <h1 className="text-3xl font-bold">Add New Playlist</h1>
-                            <>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                />
-                                <Button
-                                    isIconOnly
-                                    onPress={onPlaylistImageUpload}
-                                    className="w-36 h-36 bg-transparent"
-                                >
-                                    <Image src={playlistAddImage} />
-                                </Button>
-                            </>
                         </ModalHeader>
 
                         <ModalBody>
-                            <Input
-                                label="Title"
-                                type="text"
-                                size="lg"
-                                labelPlacement="inside"
-                                value={playlistTitle}
-                                onValueChange={setPlaylistTitle}
-                            />
+                            <div className="flex flex-row justify-center items-center space-x-4">
+                                <div className="flex-grow space-y-2">
+                                    <Input
+                                        label="Title"
+                                        type="text"
+                                        size="lg"
+                                        labelPlacement="inside"
+                                        maxLength={32}
+                                        value={playlistTitle}
+                                        onValueChange={setPlaylistTitle}
+                                    />
 
-                            <Textarea
-                                label="Description"
-                                type="text"
-                                size="lg"
-                                maxRows={3}
-                                labelPlacement="inside"
-                                value={playlistDescription}
-                                onValueChange={setPlaylistDescription}
-                            />
+                                    <Textarea
+                                        label="Description"
+                                        type="text"
+                                        size="lg"
+                                        maxRows={2}
+                                        maxLength={64}
+                                        labelPlacement="inside"
+                                        value={playlistDescription}
+                                        onValueChange={setPlaylistDescription}
+                                    />
+                                </div>
+
+                                <div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        ref={fileInputRef}
+                                        onChange={onPlaylistImageUpload}
+                                        className="hidden"
+                                    />
+                                    <Button
+                                        isIconOnly
+                                        onPress={() => fileInputRef.current?.click()}
+                                        className="w-40 h-40 bg-transparent"
+                                    >
+                                        <Image
+                                            isZoomed={thumbnailPreview !== null}
+                                            src={thumbnailPreview ?? playlistAddImage}
+                                            className="w-40 h-40 object-fill"
+                                        />
+                                    </Button>
+                                </div>
+                            </div>
                         </ModalBody>
 
                         <ModalFooter>
+                            <Button
+                                color="danger"
+                                radius="sm"
+                                className="text-xl font-medium w-18 h-12"
+                                onPress={onClose}
+                            >
+                                Cancel
+                            </Button>
                             <Button
                                 color="primary"
                                 radius="sm"
                                 className="text-xl font-medium w-18 h-12"
                             >
-                                Submit
-                            </Button>
-                            <Button
-                                color="danger"
-                                radius="sm"
-                                className="text-xl font-medium w-18 h-12"
-                                onPress={onOpenChange}
-                            >
-                                Cancel
+                                Create
                             </Button>
                         </ModalFooter>
                     </>
