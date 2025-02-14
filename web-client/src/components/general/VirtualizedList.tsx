@@ -1,44 +1,47 @@
 import { ReactElement, useEffect, useRef, useState } from 'react';
+import { RangeIndex } from 'utils/types';
 
-interface ScrollRange {
-    startIndex: number;
-    endIndex: number;
+export interface VirtualizedListItems<T> {
+    map<U>(range: RangeIndex, callback: (item: T, index: number) => U): U[];
 }
 
-interface ScrollItem<D> {
-    key: React.Key;
-    data: D;
-}
-
-interface VirtualizedListProps<D> {
-    items: ScrollItem<D>[];
+interface VirtualizedListProps<T> {
+    items: T[] | VirtualizedListItems<T>;
     maxItemsCount: number;
-    fetchItems: (range: ScrollRange) => void;
-    item: {
-        height: number;
-        gap?: number;
-        factory: (i: ScrollItem<D>, index: number) => ReactElement;
+    callbacks: {
+        fetchItems: (range: RangeIndex) => void;
+        renderItem: (item: T, index: number) => ReactElement;
+        itemKey: (item: T, index: number) => React.Key;
     };
-    window: {
-        height: number;
-        overscan: number;
+    overscan: number;
+    sizes: {
+        itemHeigth: number;
+        listHeight: number;
+    };
+    spacing: {
+        top?: number;
+        bottom?: number;
+        gap?: number;
     };
 }
 
-export default function VirtualizedList<D>({
+export default function VirtualizedList<T>({
     items,
     maxItemsCount,
-    fetchItems,
-    item,
-    window,
-}: VirtualizedListProps<D>): JSX.Element {
+    callbacks: { fetchItems, renderItem, itemKey },
+    overscan,
+    sizes,
+    spacing,
+}: VirtualizedListProps<T>): JSX.Element {
     const [scrollTopDistance, setScrollTopDistance] = useState(0);
 
-    const rowHeight = item.height + (item.gap ?? 0);
+    const rowHeight = sizes.itemHeigth + (spacing.gap ?? 0);
+    const topSpace = spacing.top ?? 0;
+    const bottomSpace = spacing.bottom ?? 0;
 
-    function computeItemsRange(scrollTopDistance: number): ScrollRange {
-        const start = Math.floor(scrollTopDistance / rowHeight);
-        const end = start + Math.floor(window.height / rowHeight) + 2 * window.overscan;
+    function computeItemsRange(scrollTopDistance: number): RangeIndex {
+        const start = Math.floor(scrollTopDistance / rowHeight) - overscan;
+        const end = start + Math.floor(sizes.listHeight / rowHeight) + 2 * overscan;
 
         return {
             startIndex: Math.max(0, start),
@@ -47,7 +50,7 @@ export default function VirtualizedList<D>({
     }
 
     const currentRange = computeItemsRange(scrollTopDistance);
-    const previousRangeRef = useRef<ScrollRange | null>();
+    const previousRangeRef = useRef<RangeIndex | null>();
 
     const { startIndex, endIndex } = currentRange;
 
@@ -65,20 +68,37 @@ export default function VirtualizedList<D>({
         fetchItems({ startIndex, endIndex });
     }, [fetchItems, startIndex, endIndex]);
 
-    const renderedItems = items.slice(startIndex, endIndex).map((i, index) => {
+    function renderListRow(item: T, index: number): JSX.Element {
         return (
-            <li key={i.key} style={{ height: `${rowHeight}px` }}>
-                {item.factory(i, index)}
+            <li key={itemKey(item, index)} style={{ height: `${rowHeight}px` }}>
+                {renderItem(item, index)}
             </li>
         );
-    });
+    }
+
+    let renderedItems: JSX.Element[];
+    if (!Array.isArray(items)) {
+        renderedItems = items.map({ startIndex, endIndex }, (item, index) => {
+            return renderListRow(item, index);
+        });
+    } else {
+        renderedItems = items.slice(startIndex, endIndex + 1).map((item, index) => {
+            return renderListRow(item, index);
+        });
+    }
 
     return (
         <ul
-            style={{ height: `${window.height}px`, overflowY: 'auto' }}
+            style={{ height: sizes.listHeight, overflowY: 'auto' }}
             onScroll={(e) => setScrollTopDistance(e.currentTarget.scrollTop)}
         >
-            <div style={{ height: `${maxItemsCount * rowHeight}px` }}>
+            <div
+                style={{
+                    height: maxItemsCount * rowHeight,
+                    marginTop: topSpace,
+                    marginBottom: bottomSpace,
+                }}
+            >
                 <div style={{ transform: `translateY(${startIndex * rowHeight}px)` }}>
                     {renderedItems}
                 </div>
