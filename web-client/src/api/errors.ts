@@ -1,30 +1,22 @@
-
 class ApiError extends Error {
-    public readonly code: ApiErrorCode
-    public readonly message: string
-    public readonly details: string | undefined
+    public readonly code: ApiErrorCode;
+    public readonly message: string;
+    public readonly details: string | undefined;
 
-    constructor(error: {
-        code: ApiErrorCode,
-        message: string,
-        details: string | undefined
-    }) {
+    constructor(error: { code: ApiErrorCode; message: string; details: string | undefined }) {
         super();
         this.code = error.code;
         this.message = error.message;
-        this.details = error.details; 
+        this.details = error.details;
     }
 }
 
-type ApiErrorCode = 
+type ApiErrorCode =
     | 'NOT_REGISTERED'
     | 'ALREADY_EXISTS'
     | 'INVALID_CREDENTIALS'
     | 'INVALID_ACCESS_TOKEN'
     | 'INVALID_REFRESH_TOKEN'
-    | 'UNKNOWN'
+    | 'UNKNOWN';
 
-export type { 
-    ApiErrorCode,
-    ApiError
-}
+export type { ApiErrorCode, ApiError };

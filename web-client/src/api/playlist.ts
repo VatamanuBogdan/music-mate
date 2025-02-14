@@ -1,17 +1,32 @@
-import { requestApi } from "./client";
-import { PlaylistDto } from "./dtos";
+import { AxiosRequestConfig } from 'axios';
 
-const ENDPOINT_BASE = "playlists"
+import { requestApi } from './client';
+import { PlaylistCreationDto, PlaylistDto } from './dtos';
+import { PaginatedPromise, PaginationParam } from './pagination';
 
-async function fetchPlaylists(): Promise<PlaylistDto[]> {
-    const config = {
+const ENDPOINT_BASE = 'playlists';
+
+async function fetchPlaylists(params: PaginationParam): PaginatedPromise<PlaylistDto> {
+    const config: AxiosRequestConfig = {
         method: 'get',
         url: ENDPOINT_BASE,
-    }
+        params,
+    };
 
-    return requestApi<PlaylistDto[]>(config);
+    return requestApi(config);
+}
+
+async function addNewPlaylist(props: PlaylistCreationDto): Promise<void> {
+    const config: AxiosRequestConfig = {
+        method: 'post',
+        url: ENDPOINT_BASE,
+        data: props,
+    };
+
+    return await requestApi<void>(config);
 }
 
 export default {
-    fetchPlaylists
-}
+    fetchPlaylists,
+    addNewPlaylist,
+};
