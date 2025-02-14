@@ -2,6 +2,21 @@ import { AxiosHeaders, AxiosRequestConfig } from 'axios';
 
 import { Duration } from './types';
 
+type BuildType = 'developement' | 'production';
+
+let buildType: BuildType | undefined;
+export function getBuildType(): BuildType {
+    if (!buildType) {
+        if (import.meta.env.MODE === 'development') {
+            buildType = 'developement';
+        } else {
+            buildType = 'production';
+        }
+    }
+
+    return buildType;
+}
+
 export interface Identifiable<I> {
     id: I;
 }
