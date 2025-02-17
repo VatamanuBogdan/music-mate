@@ -1,4 +1,5 @@
 import { Image } from '@heroui/react';
+import playlistPlaceholder from 'assets/playlist-placeholder.svg';
 
 import { Playlist } from '../../types/Playlist';
 import { formatPlaylistDuration } from '../../utils/helpers';
@@ -10,7 +11,11 @@ interface PlaylistCardProps {
 export function PlaylistCard({ playlist }: PlaylistCardProps): JSX.Element {
     return (
         <div className="h-24 mx-2 flex justify-start items-center text-slate-100 bg-slate-800 backdrop-blur-md bg-opacity-85 rounded-lg cursor-pointer select-none">
-            <Image className="w-20 h-20 ml-2 z-0" radius="md" src={playlist.thumbnailUrl} />
+            <Image
+                className="w-20 h-20 ml-2 z-0"
+                radius="md"
+                src={playlist.thumbnailUrl ?? playlistPlaceholder}
+            />
 
             <div className="flex-grow mx-3 -space-y-1">
                 <div className="flex-grow flex felx-row justify-between items-baseline">
