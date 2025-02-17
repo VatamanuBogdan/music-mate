@@ -43,7 +43,7 @@ class PlaylistController(
     @ResponseStatus(HttpStatus.OK)
     fun fetchPlaylists(pageQuery: PaginationQuery): PaginatedResponse<PlaylistDto> {
         val pageable = playlistService.fetchPlaylists(authenticatedUser, pageQuery)
-        return PaginatedResponse(pageable, pageQuery.order)
+        return PaginatedResponse(pageable)
     }
 
     @PutMapping("/thumbnails")
