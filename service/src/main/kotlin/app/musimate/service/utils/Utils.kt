@@ -1,7 +1,6 @@
 package app.musimate.service.utils
 
 import app.musimate.service.dtos.PaginationQuery
-import app.musimate.service.dtos.PaginationSortingOrder
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
