@@ -1,9 +1,6 @@
 package app.musimate.service.dtos
 
-import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonValue
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.Sort.Direction
 import org.springframework.web.bind.annotation.RequestParam
 
 data class PaginationQuery(
@@ -19,6 +16,7 @@ data class PaginatedResponse<T>(
     val page: Int,
     val pageSize: Int,
     val pageCount: Int,
+    val totalSize: Long
 )
 
 fun <T> PaginatedResponse(page: Page<T>): PaginatedResponse<T> {
@@ -26,7 +24,8 @@ fun <T> PaginatedResponse(page: Page<T>): PaginatedResponse<T> {
         content = page.content,
         page = page.number,
         pageSize = page.content.size,
-        pageCount = page.totalPages
+        pageCount = page.totalPages,
+        totalSize = page.totalElements
     )
 }
 
