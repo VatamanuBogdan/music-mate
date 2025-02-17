@@ -10,6 +10,7 @@ import {
     Textarea,
 } from '@heroui/react';
 import playlistAddImage from 'assets/playlist-add-image.svg';
+import useAddPlaylist from 'hooks/useAddPlaylist';
 import { useRef, useState } from 'react';
 
 interface AddPlaylistModalProps {
@@ -24,6 +25,7 @@ export default function AddPlaylistModal({
 }: AddPlaylistModalProps): JSX.Element {
     const [playlistTitle, setPlaylistTitle] = useState('');
     const [playlistDescription, setPlaylistDescription] = useState('');
+    const addPlaylist = useAddPlaylist();
 
     const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
@@ -46,6 +48,15 @@ export default function AddPlaylistModal({
         setPlaylistTitle('');
         setPlaylistDescription('');
         setThumbnailPreview(null);
+    }
+
+    function onPlaylistCreate(close: () => void) {
+        try {
+            addPlaylist({ name: playlistTitle, description: playlistDescription });
+            close();
+        } catch (error) {
+            console.log(`Failed to add playlist ${error}`);
+        }
     }
 
     return (
@@ -126,6 +137,7 @@ export default function AddPlaylistModal({
                                 color="primary"
                                 radius="sm"
                                 className="text-xl font-medium w-18 h-12"
+                                onPress={() => onPlaylistCreate(onClose)}
                             >
                                 Create
                             </Button>

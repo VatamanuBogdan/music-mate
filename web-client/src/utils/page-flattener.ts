@@ -1,4 +1,4 @@
-import { PaginatedResponse } from 'api/pagination';
+import { Paginated } from 'api/pagination';
 
 import { getBuildType } from './helpers';
 import { RangeIndex } from './types';
@@ -8,10 +8,10 @@ interface PagesFlattener<T> {
 }
 
 class FixedPagesFlattener<T> implements PagesFlattener<T> {
-    private pages: PaginatedResponse<T>[];
+    private pages: Paginated<T>[];
     private pageSize: number;
 
-    public constructor(pages: PaginatedResponse<T>[], pageSize: number) {
+    public constructor(pages: Paginated<T>[], pageSize: number) {
         this.pages = pages;
         this.pageSize = pageSize;
 
@@ -52,7 +52,7 @@ class FixedPagesFlattener<T> implements PagesFlattener<T> {
         };
     }
 
-    private static assertPagesFormat<T>(pages: PaginatedResponse<T>[], pageSize: number) {
+    private static assertPagesFormat<T>(pages: Paginated<T>[], pageSize: number) {
         pages.forEach((p, index) => {
             if (p.content.length !== pageSize && index < pages.length - 1) {
                 throw new Error(
@@ -71,10 +71,10 @@ type FlattenedPagesRange = {
 };
 
 class FlattenedPagesIterable<T> implements Iterable<T> {
-    private pages?: PaginatedResponse<T>[];
+    private pages?: Paginated<T>[];
     private range?: FlattenedPagesRange;
 
-    constructor(args: { pages: PaginatedResponse<T>[]; range: FlattenedPagesRange } | null) {
+    constructor(args: { pages: Paginated<T>[]; range: FlattenedPagesRange } | null) {
         if (args) {
             this.pages = args.pages;
             this.range = args.range;
@@ -95,14 +95,14 @@ class FlattenedPagesIterable<T> implements Iterable<T> {
 }
 
 class FlattenedPagesIterator<T> implements Iterator<T> {
-    private pages: PaginatedResponse<T>[];
+    private pages: Paginated<T>[];
 
     private currentPageIndex: number;
     private currentElementIndex: number;
     private lastPageIndex: number;
     private lastPageEndINdex: number;
 
-    public constructor(pages: PaginatedResponse<T>[], range: FlattenedPagesRange) {
+    public constructor(pages: Paginated<T>[], range: FlattenedPagesRange) {
         this.pages = pages;
 
         this.currentPageIndex = range.firstPageIndex;

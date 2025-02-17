@@ -1,10 +1,11 @@
 import { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query';
 
-export interface PaginatedResponse<T> {
+export interface Paginated<T> {
     content: T[];
     page: number;
     pageSize: number;
     pageCount: number;
+    totalSize: number;
 }
 
 export interface PaginationParam {
@@ -12,6 +13,6 @@ export interface PaginationParam {
     size: number;
 }
 
-export type PaginatedPromise<T> = Promise<PaginatedResponse<T>>;
+export type PaginatedPromise<T> = Promise<Paginated<T>>;
 
-export type PaginatedQueryResult<T> = UseInfiniteQueryResult<InfiniteData<PaginatedResponse<T>>>;
+export type PaginatedQueryResult<T> = UseInfiniteQueryResult<InfiniteData<Paginated<T>>>;
