@@ -22,7 +22,8 @@ def print_request_result(method: str, endpoint: str, auth: bool = True, **kwargs
     try:
         response = perform_request(method, endpoint, auth, **kwargs)
         if response.ok:
-            print_json_body(response)
+            if response.content:
+                print_json_body(response)
             return response
         else:
             body = response.text
