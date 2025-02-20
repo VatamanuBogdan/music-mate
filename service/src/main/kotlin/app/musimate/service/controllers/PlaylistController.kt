@@ -2,9 +2,7 @@ package app.musimate.service.controllers
 
 import app.musimate.service.dtos.PaginatedResponse
 import app.musimate.service.dtos.PaginationQuery
-import app.musimate.service.dtos.playlist.PlaylistCreationDto
-import app.musimate.service.dtos.playlist.PlaylistDto
-import app.musimate.service.dtos.playlist.TrackDto
+import app.musimate.service.dtos.playlist.*
 import app.musimate.service.models.User
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.PlaylistService
@@ -42,8 +40,8 @@ class PlaylistController(
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun fetchPlaylists(pageQuery: PaginationQuery): PaginatedResponse<PlaylistDto> {
-        val pageable = playlistService.fetchPlaylists(authenticatedUser, pageQuery)
-        return PaginatedResponse(pageable)
+        val page = playlistService.fetchPlaylists(authenticatedUser, pageQuery)
+        return PaginatedResponse(page)
     }
 
     @PutMapping("/thumbnails")
@@ -63,5 +61,32 @@ class PlaylistController(
         val inputStream = playlistService.fetchThumbnail(playlistId)
         val resource = InputStreamResource(inputStream)
         return resource
+    }
+
+    @GetMapping("/tracks")
+    fun fetchPlaylistTracks(
+        @RequestParam playlistId: Int,
+        pageQuery: PaginationQuery
+    ): PaginatedResponse<TrackDto> {
+        val page = playlistService.fetchPlaylistTracks(playlistId, pageQuery)
+        return PaginatedResponse(page)
+    }
+
+    @PostMapping("/tracks/{playlistId}")
+    @ResponseStatus(HttpStatus.OK)
+    fun addTrackToPlaylist(
+        @PathVariable playlistId: Int,
+        @RequestBody body: TrackSourceDto
+    ): TrackDto {
+        return playlistService.addTrackToPlaylist(playlistId, body)
+    }
+
+    @DeleteMapping("{playlistId}/tracks/{trackId}")
+    @ResponseStatus(HttpStatus.OK)
+    fun removeTrackFromPlaylist(
+        @PathVariable playlistId: Int,
+        @PathVariable trackId: Int
+    ) {
+        playlistService.removeTrackFromPlaylist(playlistId, trackId)
     }
 }

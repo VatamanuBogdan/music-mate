@@ -16,7 +16,7 @@ data class PlaylistCreationDto(
     val description: String,
 )
 
-class PlaylistDto(
+data class PlaylistDto(
     @get:NotNull
     val id: Int,
 
@@ -32,10 +32,10 @@ class PlaylistDto(
     val thumbnail: Boolean,
 
     @get:NotNull
-    val tracksCount: UInt,
+    val tracksCount: Int,
 
     @get:NotNull
-    val duration: UInt
+    val duration: Long
 )
 
 fun PlaylistDto(playlist: Playlist): PlaylistDto {
@@ -45,6 +45,6 @@ fun PlaylistDto(playlist: Playlist): PlaylistDto {
         name = playlist.name,
         description = playlist.description,
         thumbnail = playlist.hasThumbnail,
-        duration = playlist.totalDuration
+        duration = playlist.totalDurationSec
     )
 }

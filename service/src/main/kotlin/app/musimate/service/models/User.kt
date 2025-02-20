@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "users")
-data class User(
+class User(
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Int?,
 

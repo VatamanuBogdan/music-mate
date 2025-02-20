@@ -8,14 +8,16 @@ spring:
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+server:
+  error:
+    include-message: always
 minio:
   url: ${MINIO_URL}
   access:
     username: ${MINIO_USERNAME}
     password: ${MINIO_PASSWORD}
-server:
-  error:
-    include-message: always
+youtube-data:
+  api-key: ${YOUTUBE_DATA_API_KEY}
 auth:
   token:
     secret: ${JWT_SECRET}

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 @JsonFormat
 enum class ApiErrorCode {
     NOT_REGISTERED,
+    NOT_IMPLEMENTED,
     ALREADY_EXISTS,
     INVALID_CREDENTIALS,
     INVALID_REFRESH_TOKEN,

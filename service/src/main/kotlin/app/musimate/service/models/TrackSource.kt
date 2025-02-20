@@ -1,17 +1,34 @@
 package app.musimate.service.models
 
-import app.musimate.service.utils.Platform
-import jakarta.persistence.Column
-import jakarta.persistence.Embeddable
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
+import jakarta.persistence.AttributeConverter
+import jakarta.persistence.Converter
 
-@Embeddable
-data class TrackSource(
-    @Column(nullable = false)
-    val url: String,
+sealed class TrackSource {
+    data class Spotify(val url: String): TrackSource()
+    data class Youtube(val videoId: String): TrackSource()
+}
 
-    @Enumerated(value = EnumType.ORDINAL)
-    @Column(nullable = false)
-    val platform: Platform
-)
+@Converter(autoApply = true)
+class TrackSourceConverter: AttributeConverter<TrackSource, String> {
+    override fun convertToDatabaseColumn(value: TrackSource): String {
+        return when (value) {
+            is TrackSource.Spotify -> "$SPOTIFY_PREFIX${value.url}"
+            is TrackSource.Youtube -> "$YOUTUBE_PREFIX${value.videoId}"
+        }
+    }
+
+    override fun convertToEntityAttribute(value: String): TrackSource {
+        return if (value.startsWith(SPOTIFY_PREFIX)) {
+            TrackSource.Spotify(value.removePrefix(SPOTIFY_PREFIX))
+        } else if (value.startsWith(YOUTUBE_PREFIX)) {
+            TrackSource.Youtube(value.removePrefix(YOUTUBE_PREFIX))
+        } else {
+            throw RuntimeException("Invalid data serialization for ${TrackSource::javaClass.name}")
+        }
+    }
+
+    private companion object {
+        const val SPOTIFY_PREFIX = "SpSrc="
+        const val YOUTUBE_PREFIX = "YtSrc="
+    }
+}

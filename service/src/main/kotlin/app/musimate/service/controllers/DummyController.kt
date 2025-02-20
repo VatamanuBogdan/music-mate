@@ -1,6 +1,7 @@
 package app.musimate.service.controllers
 
 import app.musimate.service.services.ImageService
+import app.musimate.service.services.YoutubeDataService
 import io.minio.*
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.context.annotation.Profile
@@ -12,11 +13,16 @@ import java.io.InputStream
 @RequestMapping("/api/dummy")
 class DummyController(
     private val minioClient: MinioClient,
-    private val imageService: ImageService
+    private val imageService: ImageService,
+    private val youtubeService: YoutubeDataService
 ) {
 
     @GetMapping("/hello")
     fun helloWorld() = "Hello world!"
+
+    @GetMapping("/video/{videoId}")
+    fun fetchYoutubeVideoInfos(@PathVariable videoId: String)
+        = youtubeService.fetchSongInformation(videoId)
 
     @PostMapping("/files/{fileName}")
     fun sendFile(

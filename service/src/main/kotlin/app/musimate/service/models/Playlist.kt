@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 @Entity
 @EntityListeners(AuditingEntityListener::class)
 @Table(name = "playlists")
-data class Playlist(
+class Playlist(
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Int?,
 
@@ -22,16 +22,22 @@ data class Playlist(
     @Column(name = "has_thumbnail", nullable = false)
     var hasThumbnail: Boolean = false,
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     var owner: User,
 
-    @Column(name = "total_duration")
-    var totalDuration: UInt = 0u,
+    @Column(name = "track_count", nullable = false)
+    var trackCount: Int = 0,
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @Column(name = "total_duration")
+    var totalDurationSec: Long = 0,
+
+    @ManyToMany(
+        fetch = FetchType.LAZY,
+        cascade = [CascadeType.PERSIST, CascadeType.MERGE]
+    )
     @JoinTable(
-        name = "playlist_tracks",
+        name = "playlists_tracks",
         joinColumns = [
             JoinColumn(name = "playlist_id", referencedColumnName = "id")
         ],
@@ -39,10 +45,7 @@ data class Playlist(
             JoinColumn(name = "track_id", referencedColumnName = "id")
         ],
     )
-    var tracks: MutableList<Track> = mutableListOf(),
-
-    @Column(name = "track_count", nullable = false)
-    var trackCount: UInt = 0u,
+    var tracks: MutableSet<Track> = mutableSetOf(),
 ) {
     @CreatedDate
     @Column(name = "created_data", nullable = false)
@@ -51,4 +54,26 @@ data class Playlist(
     @LastModifiedDate
     @Column(name = "last_modified", nullable = false)
     lateinit var lastModifier: LocalDateTime
+
+    fun addTrack(track: Track) {
+        tracks.add(track)
+        track.playlists.add(this)
+        totalDurationSec += track.durationSec
+        trackCount++
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+        if (other !is Playlist) {
+            return false
+        }
+
+        return id != null && id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
 }
