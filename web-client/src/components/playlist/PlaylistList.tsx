@@ -1,8 +1,9 @@
 import { PlaylistDto } from 'api/dtos';
 import { PlaylistCard } from 'components/cards/PlaylistCard';
-import VirtualizedList from 'components/general/VirtualizedList';
+import VirtualizedList from 'components/containers/VirtualizedList';
 import usePlaylistsQuery from 'hooks/usePlaylistsQuery';
 import useVhSizes from 'hooks/useVhSizes';
+import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
 import { ReactElement, useMemo } from 'react';
 import { VirtualizedListPaginatedItems } from 'utils/adapters';
 import { FixedPagesFlattener } from 'utils/page-flattener';
@@ -15,6 +16,8 @@ const listOverscan = 5;
 export default function PlaylistList(): JSX.Element {
     const { playlistPages, playlistCount, fetchNextPage, isFetchingNextPage } =
         usePlaylistsQuery(playlistPageSize);
+
+    const { selectPlaylist } = useSelectedPlaylist();
 
     const items = useMemo(() => {
         const flattener = new FixedPagesFlattener(playlistPages, playlistPageSize);
@@ -29,7 +32,7 @@ export default function PlaylistList(): JSX.Element {
                 <VirtualizedList
                     items={items}
                     maxItemsCount={playlistCount}
-                    callbacks={{
+                    itemHandlers={{
                         fetchItems: (range: RangeIndex) => {
                             if (
                                 !isFetchingNextPage ||
@@ -53,6 +56,7 @@ export default function PlaylistList(): JSX.Element {
                         bottom: remToPx(10.0),
                         gap: remToPx(0.3),
                     }}
+                    onSelect={selectPlaylist}
                 />
             }
         </div>

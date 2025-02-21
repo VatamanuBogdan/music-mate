@@ -1,4 +1,4 @@
-import { VirtualizedListItems } from 'components/general/VirtualizedList';
+import { VirtualizedListItems } from 'components/containers/VirtualizedList';
 
 import { PagesFlattener } from './page-flattener';
 import { RangeIndex } from './types';
@@ -8,6 +8,10 @@ class VirtualizedListPaginatedItems<T> implements VirtualizedListItems<T> {
 
     public constructor(flattener: PagesFlattener<T>) {
         this.flattener = flattener;
+    }
+
+    public at(index: number): T {
+        return this.flattener.at(index);
     }
 
     public map<U>(range: RangeIndex, callback: (value: T, index: number) => U): U[] {

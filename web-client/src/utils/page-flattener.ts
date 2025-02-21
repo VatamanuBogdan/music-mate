@@ -4,6 +4,7 @@ import { getBuildType } from './helpers';
 import { RangeIndex } from './types';
 
 interface PagesFlattener<T> {
+    at(index: number): T;
     flattenRange(range: RangeIndex): Iterable<T>;
 }
 
@@ -20,6 +21,11 @@ class FixedPagesFlattener<T> implements PagesFlattener<T> {
         }
     }
 
+    public at(index: number): T {
+        const [pageIndex, inPageIndex] = this.getPageIndexes(index);
+        return this.pages[pageIndex].content[inPageIndex];
+    }
+
     public flattenRange(range: RangeIndex): FlattenedPagesIterable<T> {
         const { startIndex, endIndex } = this.boundRange(range);
 
@@ -27,15 +33,22 @@ class FixedPagesFlattener<T> implements PagesFlattener<T> {
             return new FlattenedPagesIterable(null);
         }
 
+        const [firstPageIndex, firstPageStartIndex] = this.getPageIndexes(startIndex);
+        const [lastPageIndex, lastPageEndIndex] = this.getPageIndexes(endIndex);
+
         return new FlattenedPagesIterable({
             pages: this.pages,
             range: {
-                firstPageIndex: Math.floor(startIndex / this.pageSize),
-                firstPageStartIndex: startIndex % this.pageSize,
-                lastPageIndex: Math.floor(endIndex / this.pageSize),
-                lastPageEndIndex: endIndex % this.pageSize,
+                firstPageIndex,
+                firstPageStartIndex,
+                lastPageIndex,
+                lastPageEndIndex,
             },
         });
+    }
+
+    private getPageIndexes(index: number): [number, number] {
+        return [Math.floor(index / this.pageSize), index % this.pageSize];
     }
 
     private boundRange({ startIndex, endIndex }: RangeIndex): RangeIndex {
