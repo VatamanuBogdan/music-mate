@@ -1,14 +1,15 @@
-import { ReactElement, useEffect, useRef, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { RangeIndex } from 'utils/types';
 
 export interface VirtualizedListItems<T> {
+    at(index: number): T;
     map<U>(range: RangeIndex, callback: (item: T, index: number) => U): U[];
 }
 
 interface VirtualizedListProps<T> {
-    items: T[] | VirtualizedListItems<T>;
+    items: Array<T> | VirtualizedListItems<T>;
     maxItemsCount: number;
-    callbacks: {
+    itemHandlers: {
         fetchItems: (range: RangeIndex) => void;
         renderItem: (item: T, index: number) => ReactElement;
         itemKey: (item: T, index: number) => React.Key;
@@ -23,15 +24,17 @@ interface VirtualizedListProps<T> {
         bottom?: number;
         gap?: number;
     };
+    onSelect?: (item: T, index: number) => void;
 }
 
 export default function VirtualizedList<T>({
     items,
     maxItemsCount,
-    callbacks: { fetchItems, renderItem, itemKey },
+    itemHandlers: { fetchItems, renderItem, itemKey },
     overscan,
     sizes,
     spacing,
+    onSelect,
 }: VirtualizedListProps<T>): JSX.Element {
     const [scrollTopDistance, setScrollTopDistance] = useState(0);
 
@@ -68,24 +71,39 @@ export default function VirtualizedList<T>({
         fetchItems({ startIndex, endIndex });
     }, [fetchItems, startIndex, endIndex]);
 
-    function renderListRow(item: T, index: number): JSX.Element {
-        return (
-            <li key={itemKey(item, index)} style={{ height: `${rowHeight}px` }}>
-                {renderItem(item, index)}
-            </li>
-        );
+    const itemsSlice = useMemo(() => {
+        if (!Array.isArray(items)) {
+            return items.map({ startIndex, endIndex }, (item) => item);
+        } else {
+            return items.slice(startIndex, endIndex + 1);
+        }
+    }, [items, startIndex, endIndex]);
+
+    function handledItemSelection(e: React.MouseEvent<HTMLElement>) {
+        if (!onSelect) {
+            return;
+        }
+
+        const item = (e.target as HTMLElement).closest('[v-li-index]');
+        if (!item) {
+            return;
+        }
+
+        const stringIndex = item.getAttribute('v-li-index');
+        if (stringIndex) {
+            const index = parseInt(stringIndex);
+            onSelect(itemsSlice[index], index);
+        }
     }
 
-    let renderedItems: JSX.Element[];
-    if (!Array.isArray(items)) {
-        renderedItems = items.map({ startIndex, endIndex }, (item, index) => {
-            return renderListRow(item, index);
-        });
-    } else {
-        renderedItems = items.slice(startIndex, endIndex + 1).map((item, index) => {
-            return renderListRow(item, index);
-        });
-    }
+    const renderedItems = itemsSlice.map((item, index) => {
+        const key = itemKey(item, startIndex + index);
+        return (
+            <li key={key} v-li-index={index} style={{ height: `${rowHeight}px` }}>
+                {renderItem(item, startIndex + index)}
+            </li>
+        );
+    });
 
     return (
         <ul
@@ -99,7 +117,10 @@ export default function VirtualizedList<T>({
                     marginBottom: bottomSpace,
                 }}
             >
-                <div style={{ transform: `translateY(${startIndex * rowHeight}px)` }}>
+                <div
+                    style={{ transform: `translateY(${startIndex * rowHeight}px)` }}
+                    onClick={onSelect ? handledItemSelection : undefined}
+                >
                     {renderedItems}
                 </div>
             </div>
