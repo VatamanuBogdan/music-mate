@@ -1,28 +1,24 @@
-import { PlaylistDto } from 'api/dtos';
 import { PlaylistCard } from 'components/cards/PlaylistCard';
 import VirtualizedList from 'components/containers/VirtualizedList';
-import usePlaylistsQuery from 'hooks/usePlaylistsQuery';
+import usePlaylists from 'hooks/usePlaylists';
 import useVhSizes from 'hooks/useVhSizes';
+import useVirtualizedListItems from 'hooks/useVirtualListPages';
 import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
-import { ReactElement, useMemo } from 'react';
-import { VirtualizedListPaginatedItems } from 'utils/adapters';
-import { FixedPagesFlattener } from 'utils/page-flattener';
 import { remToPx } from 'utils/transforms';
-import { RangeIndex } from 'utils/types';
 
 const playlistPageSize = 10;
 const listOverscan = 5;
 
 export default function PlaylistList(): JSX.Element {
-    const { playlistPages, playlistCount, fetchNextPage, isFetchingNextPage } =
-        usePlaylistsQuery(playlistPageSize);
+    const {
+        pages: playlistPages,
+        fetchNextPage,
+        isFetchingNextPage,
+    } = usePlaylists(playlistPageSize);
 
     const { selectPlaylist } = useSelectedPlaylist();
 
-    const items = useMemo(() => {
-        const flattener = new FixedPagesFlattener(playlistPages, playlistPageSize);
-        return new VirtualizedListPaginatedItems(flattener);
-    }, [playlistPages]);
+    const items = useVirtualizedListItems(playlistPages, playlistPageSize);
 
     const [listHeight] = useVhSizes(100);
 
@@ -31,19 +27,8 @@ export default function PlaylistList(): JSX.Element {
             {
                 <VirtualizedList
                     items={items}
-                    maxItemsCount={playlistCount}
-                    itemHandlers={{
-                        fetchItems: (range: RangeIndex) => {
-                            if (
-                                !isFetchingNextPage ||
-                                range.endIndex > playlistPages.length * playlistPageSize
-                            ) {
-                                fetchNextPage();
-                            }
-                        },
-                        renderItem: (playlist: PlaylistDto): ReactElement => {
-                            return <PlaylistCard playlist={playlist} />;
-                        },
+                    itemRendering={{
+                        renderItem: (playlist) => <PlaylistCard playlist={playlist} />,
                         itemKey: (playlist) => playlist.id,
                     }}
                     overscan={listOverscan}
@@ -57,6 +42,11 @@ export default function PlaylistList(): JSX.Element {
                         gap: remToPx(0.3),
                     }}
                     onSelect={selectPlaylist}
+                    onScrollEnd={() => {
+                        if (!isFetchingNextPage) {
+                            fetchNextPage();
+                        }
+                    }}
                 />
             }
         </div>

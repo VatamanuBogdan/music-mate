@@ -149,6 +149,7 @@ class PlaylistService(
                     source.videoId,
                     quality = YoutubeDataService.ThumbnailQuality.MEDIUM
                 ),
+                durationSec= track.durationSec,
                 source = TrackSourceDto(Platform.YOUTUBE, source.videoId)
             )
         }

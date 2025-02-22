@@ -4,6 +4,7 @@ import { getBuildType } from './helpers';
 import { RangeIndex } from './types';
 
 interface PagesFlattener<T> {
+    readonly length: number;
     at(index: number): T;
     flattenRange(range: RangeIndex): Iterable<T>;
 }
@@ -12,12 +13,23 @@ class FixedPagesFlattener<T> implements PagesFlattener<T> {
     private pages: Paginated<T>[];
     private pageSize: number;
 
+    public readonly length: number;
+
     public constructor(pages: Paginated<T>[], pageSize: number) {
         this.pages = pages;
         this.pageSize = pageSize;
 
         if (getBuildType() === 'developement') {
             FixedPagesFlattener.assertPagesFormat(pages, pageSize);
+        }
+
+        if (pages.length > 0) {
+            const lastPageIndex = this.pages.length - 1;
+            const lastPageLength = this.pages[lastPageIndex].content.length;
+
+            this.length = lastPageIndex * this.pageSize + lastPageLength;
+        } else {
+            this.length = 0;
         }
     }
 
@@ -56,12 +68,9 @@ class FixedPagesFlattener<T> implements PagesFlattener<T> {
             return { startIndex: 0, endIndex: -1 };
         }
 
-        const lastPageIndex = this.pages.length - 1;
-        const lastPageLength = this.pages[lastPageIndex].content.length;
-
         return {
             startIndex,
-            endIndex: Math.min(endIndex, lastPageIndex * this.pageSize + lastPageLength - 1),
+            endIndex: Math.min(endIndex, this.length - 1),
         };
     }
 

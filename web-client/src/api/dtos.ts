@@ -35,3 +35,17 @@ export interface PlaylistDto {
     tracksCount: number;
     duration: number;
 }
+
+export interface TrackSourceDto {
+    platform: 'SPOTIFY' | 'YOUTUBE';
+    value: string;
+}
+
+export interface TrackDto {
+    id: number;
+    name: string;
+    artist: string;
+    thumbnailUrl: string;
+    durationSec: number;
+    source: TrackSourceDto;
+}

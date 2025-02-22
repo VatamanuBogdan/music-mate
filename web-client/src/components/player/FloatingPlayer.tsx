@@ -61,7 +61,7 @@ export function FloatingPlayer({
 
     return (
         <div className="flex flex-row justify-start w-96 h-32 rounded-lg bg-slate-800 backdrop-blur-md bg-opacity-50 select-none">
-            <Image className="w-32 h-32" radius="md" src={track.imageUrl} />
+            <Image className="w-32 h-32" radius="md" src={track.thumbnailUrl} />
 
             <div className="relative flex flex-col flex-grow justify-end items-center">
                 <div className="self-stretch flex-grow ml-5 mt-4 space-y-[-3px]">

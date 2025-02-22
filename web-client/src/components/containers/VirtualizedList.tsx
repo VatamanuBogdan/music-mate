@@ -1,16 +1,16 @@
-import { ReactElement, useEffect, useMemo, useRef, useState } from 'react';
-import { RangeIndex } from 'utils/types';
+import { ReactElement, useMemo, useRef, useState } from 'react';
+import { RangeIndex, isArray } from 'utils/types';
 
 export interface VirtualizedListItems<T> {
+    length: number;
     at(index: number): T;
     map<U>(range: RangeIndex, callback: (item: T, index: number) => U): U[];
 }
 
 interface VirtualizedListProps<T> {
     items: Array<T> | VirtualizedListItems<T>;
-    maxItemsCount: number;
-    itemHandlers: {
-        fetchItems: (range: RangeIndex) => void;
+    maxItemsCount?: number;
+    itemRendering: {
         renderItem: (item: T, index: number) => ReactElement;
         itemKey: (item: T, index: number) => React.Key;
     };
@@ -25,22 +25,25 @@ interface VirtualizedListProps<T> {
         gap?: number;
     };
     onSelect?: (item: T, index: number) => void;
+    onScroll?: (range: RangeIndex) => void;
+    onScrollEnd?: (range: RangeIndex) => void;
 }
 
 export default function VirtualizedList<T>({
     items,
     maxItemsCount,
-    itemHandlers: { fetchItems, renderItem, itemKey },
+    itemRendering: { renderItem, itemKey },
     overscan,
     sizes,
     spacing,
     onSelect,
+    onScroll,
+    onScrollEnd,
 }: VirtualizedListProps<T>): JSX.Element {
     const [scrollTopDistance, setScrollTopDistance] = useState(0);
 
     const rowHeight = sizes.itemHeigth + (spacing.gap ?? 0);
-    const topSpace = spacing.top ?? 0;
-    const bottomSpace = spacing.bottom ?? 0;
+    const scrollEndIndex = (maxItemsCount ?? items.length) - 1;
 
     function computeItemsRange(scrollTopDistance: number): RangeIndex {
         const start = Math.floor(scrollTopDistance / rowHeight) - overscan;
@@ -48,36 +51,43 @@ export default function VirtualizedList<T>({
 
         return {
             startIndex: Math.max(0, start),
-            endIndex: Math.min(end, maxItemsCount),
+            endIndex: Math.min(end, scrollEndIndex),
         };
     }
 
-    const currentRange = computeItemsRange(scrollTopDistance);
-    const previousRangeRef = useRef<RangeIndex | null>();
-
-    const { startIndex, endIndex } = currentRange;
-
-    useEffect(() => {
-        const previousRange = previousRangeRef.current;
-        if (
-            previousRange &&
-            previousRange.startIndex === startIndex &&
-            previousRange.endIndex === endIndex
-        ) {
-            return;
-        }
-
-        previousRangeRef.current = { startIndex, endIndex };
-        fetchItems({ startIndex, endIndex });
-    }, [fetchItems, startIndex, endIndex]);
+    const { startIndex, endIndex } = computeItemsRange(scrollTopDistance);
+    const previousRangeRef = useRef<RangeIndex>({ startIndex, endIndex });
 
     const itemsSlice = useMemo(() => {
-        if (!Array.isArray(items)) {
+        if (!isArray(items)) {
             return items.map({ startIndex, endIndex }, (item) => item);
         } else {
             return items.slice(startIndex, endIndex + 1);
         }
     }, [items, startIndex, endIndex]);
+
+    function handleScrollChange(e: React.UIEvent<HTMLUListElement, UIEvent>) {
+        const scrollTopDistance = e.currentTarget.scrollTop;
+        const currentRange = computeItemsRange(scrollTopDistance);
+
+        setScrollTopDistance(scrollTopDistance);
+        const previousRange = previousRangeRef.current;
+        if (
+            previousRange.startIndex === currentRange.startIndex &&
+            previousRange.endIndex === currentRange.endIndex
+        ) {
+            return;
+        }
+        previousRangeRef.current = currentRange;
+
+        if (onScroll) {
+            onScroll(currentRange);
+        }
+
+        if (onScrollEnd && endIndex === scrollEndIndex) {
+            onScrollEnd(currentRange);
+        }
+    }
 
     function handledItemSelection(e: React.MouseEvent<HTMLElement>) {
         if (!onSelect) {
@@ -106,15 +116,12 @@ export default function VirtualizedList<T>({
     });
 
     return (
-        <ul
-            style={{ height: sizes.listHeight, overflowY: 'auto' }}
-            onScroll={(e) => setScrollTopDistance(e.currentTarget.scrollTop)}
-        >
+        <ul style={{ height: sizes.listHeight, overflowY: 'auto' }} onScroll={handleScrollChange}>
             <div
                 style={{
-                    height: maxItemsCount * rowHeight,
-                    marginTop: topSpace,
-                    marginBottom: bottomSpace,
+                    height: (scrollEndIndex + 1) * rowHeight,
+                    marginTop: spacing.top ?? 0,
+                    marginBottom: spacing.bottom ?? 0,
                 }}
             >
                 <div

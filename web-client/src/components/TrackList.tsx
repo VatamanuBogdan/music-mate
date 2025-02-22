@@ -1,28 +1,50 @@
-import { useState } from 'react';
+import usePlaylistTracks from 'hooks/usePlaylistTracks';
+import useVhSizes from 'hooks/useVhSizes';
+import useVirtualizedListItems from 'hooks/useVirtualListPages';
+import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
+import { remToPx } from 'utils/transforms';
 
-import { trackMocks } from '../mocks/tracks';
-import { Track } from '../types/Track';
 import TrackCard from './cards/TrackCard';
+import VirtualizedList from './containers/VirtualizedList';
+
+const tracksPageSize = 10;
+const listOverscan = 5;
 
 export default function TrackList(): JSX.Element {
-    const [tracks] = useState(() => {
-        return new Array<Track | undefined>(30).fill(undefined).map((_v, i) => {
-            return trackMocks[i % trackMocks.length];
-        }) as Array<Track>;
-    });
+    const { selectedPlaylist } = useSelectedPlaylist();
 
-    const tracksCard = tracks.map((track, index) => {
-        return (
-            <li key={track.id}>
-                <TrackCard index={index + 1} track={track} />
-            </li>
-        );
-    });
+    const {
+        pages: tracksPages,
+        fetchNextPage,
+        isFetchingNextPage,
+    } = usePlaylistTracks(selectedPlaylist?.id, tracksPageSize);
+
+    const items = useVirtualizedListItems(tracksPages, tracksPageSize);
+
+    const [listHeight] = useVhSizes(100);
 
     return (
-        // TODO: Expose bar height as global tailwind variable
-        <ul className="max-h-[calc(100vh-5rem)] w-full py-4 px-2 space-y-1 bg-slate-700 bg-opacity-75 scrollbar overflow-y-auto">
-            {tracksCard}
-        </ul>
+        <div className="h-[calc(100vh-5rem)] w-full px-2 bg-slate-700 bg-opacity-75 scrollbar">
+            <VirtualizedList
+                items={items}
+                itemRendering={{
+                    renderItem: (track, index) => <TrackCard track={track} index={index} />,
+                    itemKey: (track) => track.id,
+                }}
+                overscan={listOverscan}
+                sizes={{
+                    listHeight: listHeight - remToPx(5),
+                    itemHeigth: remToPx(4),
+                }}
+                spacing={{
+                    gap: remToPx(0.3),
+                }}
+                onScrollEnd={() => {
+                    if (!isFetchingNextPage) {
+                        fetchNextPage();
+                    }
+                }}
+            />
+        </div>
     );
 }

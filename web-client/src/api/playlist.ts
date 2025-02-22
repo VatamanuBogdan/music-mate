@@ -1,15 +1,16 @@
 import { AxiosRequestConfig } from 'axios';
 
 import { requestApi } from './client';
-import { PlaylistCreationDto, PlaylistDto } from './dtos';
+import { PlaylistCreationDto, PlaylistDto, TrackDto } from './dtos';
 import { PaginatedPromise, PaginationParam } from './pagination';
 
-const ENDPOINT_BASE = 'playlists';
+const PLAYLIST_ENDPOINT = 'playlists';
+const PLAYLIST_TRACKS_ENDPOINT = `${PLAYLIST_ENDPOINT}/tracks`;
 
 async function fetchPlaylists(params: PaginationParam): PaginatedPromise<PlaylistDto> {
     const config: AxiosRequestConfig = {
         method: 'get',
-        url: ENDPOINT_BASE,
+        url: PLAYLIST_ENDPOINT,
         params,
     };
 
@@ -19,14 +20,28 @@ async function fetchPlaylists(params: PaginationParam): PaginatedPromise<Playlis
 async function addNewPlaylist(props: PlaylistCreationDto): Promise<void> {
     const config: AxiosRequestConfig = {
         method: 'post',
-        url: ENDPOINT_BASE,
+        url: PLAYLIST_ENDPOINT,
         data: props,
     };
 
-    return await requestApi<void>(config);
+    return requestApi<void>(config);
+}
+
+async function fetchPlaylistTracks(
+    playlistId: number,
+    params: PaginationParam
+): PaginatedPromise<TrackDto> {
+    const config: AxiosRequestConfig = {
+        method: 'get',
+        url: PLAYLIST_TRACKS_ENDPOINT,
+        params: { playlistId, ...params },
+    };
+
+    return requestApi(config);
 }
 
 export default {
     fetchPlaylists,
     addNewPlaylist,
+    fetchPlaylistTracks,
 };
