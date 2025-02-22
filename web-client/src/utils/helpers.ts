@@ -1,6 +1,6 @@
 import { AxiosHeaders, AxiosRequestConfig } from 'axios';
 
-import { Duration } from './types';
+import { Duration, DurationSeconds, isDurationSeconds } from './types';
 
 type BuildType = 'developement' | 'production';
 
@@ -56,8 +56,12 @@ export function formatPlaylistDuration(seconds: number): string {
     }
 }
 
-export function formatTrackDuration(seconds: number): string {
-    const { hours: h, minutes: m, seconds: s } = transformSeconds(seconds);
+export function formatTrackDuration(duration: DurationSeconds | Duration): string {
+    const {
+        hours: h,
+        minutes: m,
+        seconds: s,
+    } = isDurationSeconds(duration) ? transformSeconds(duration) : duration;
 
     return `${h > 0 ? ` ${h}h` : ''} ${m > 0 ? ` ${m}m` : ''} ${s > 0 ? ` ${s}s` : ''}`;
 }

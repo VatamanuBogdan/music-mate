@@ -13,6 +13,7 @@ data class TrackDto(
     var artist: String,
     @get:NotEmpty
     var thumbnailUrl: String,
+    var durationSec: Long,
     var source: TrackSourceDto
 )
 

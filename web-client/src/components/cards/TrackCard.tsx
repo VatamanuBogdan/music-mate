@@ -16,7 +16,7 @@ export default function TrackCard({ index, track }: TrackCardProps): JSX.Element
                     <span className="text-slate-200 text-base text-right font-bold w-9">
                         {index}.
                     </span>
-                    <Image width={48} height={48} src={track.imageUrl} />
+                    <Image width={48} height={48} src={track.thumbnailUrl} />
 
                     <span className="align-baseline space-x-2">
                         <span className="text-lg text-slate-200 font-medium">{track.name}</span>

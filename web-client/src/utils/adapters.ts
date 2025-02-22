@@ -14,12 +14,16 @@ class VirtualizedListPaginatedItems<T> implements VirtualizedListItems<T> {
         return this.flattener.at(index);
     }
 
+    public get length(): number {
+        return this.flattener.length;
+    }
+
     public map<U>(range: RangeIndex, callback: (value: T, index: number) => U): U[] {
         const mappedValues = new Array<U>(range.endIndex - range.startIndex + 1);
         let index = 0;
 
-        for (const playlist of this.flattener.flattenRange(range)) {
-            mappedValues[index] = callback(playlist, index);
+        for (const value of this.flattener.flattenRange(range)) {
+            mappedValues[index] = callback(value, index);
             index += 1;
         }
 
