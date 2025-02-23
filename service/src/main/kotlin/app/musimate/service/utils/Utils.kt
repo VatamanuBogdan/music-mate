@@ -49,3 +49,7 @@ fun Utils.toPageable(pageQuery: PaginationQuery,
         Sort.by(sortDirection, sortPropriety)
     )
 }
+
+fun Utils.toPageable(pageQuery: PaginationQuery): Pageable {
+    return PageRequest.of(pageQuery.page, pageQuery.size)
+}

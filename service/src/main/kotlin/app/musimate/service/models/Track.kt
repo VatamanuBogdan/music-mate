@@ -21,8 +21,13 @@ class Track(
     @Column(nullable = false, unique = true)
     var source: TrackSource,
 
-    @ManyToMany(mappedBy = "tracks")
-    var playlists: MutableSet<Playlist> = mutableSetOf()
+    @OneToMany(
+        mappedBy = "track",
+        fetch = FetchType.LAZY,
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    var playlists: MutableList<PlaylistTrack> = mutableListOf()
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) {
