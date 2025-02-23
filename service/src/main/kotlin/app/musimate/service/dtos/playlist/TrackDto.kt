@@ -1,9 +1,7 @@
 package app.musimate.service.dtos.playlist
 
-import app.musimate.service.models.TrackSource
 import app.musimate.service.utils.Platform
 import jakarta.validation.constraints.NotEmpty
-import java.net.URL
 
 data class TrackDto(
     var id: Int,
@@ -15,6 +13,11 @@ data class TrackDto(
     var thumbnailUrl: String,
     var durationSec: Long,
     var source: TrackSourceDto
+)
+
+data class TrackPosition(
+    var id: Int,
+    var index: Int
 )
 
 data class TrackSourceDto(

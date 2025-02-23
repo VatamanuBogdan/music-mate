@@ -6,11 +6,9 @@ import app.musimate.service.dtos.playlist.*
 import app.musimate.service.exceptions.ApiException
 import app.musimate.service.exceptions.InvalidPlaylistIdException
 import app.musimate.service.exceptions.SpotifyOperationNotImplementedException
-import app.musimate.service.models.Playlist
-import app.musimate.service.models.Track
-import app.musimate.service.models.TrackSource
-import app.musimate.service.models.User
+import app.musimate.service.models.*
 import app.musimate.service.repositories.PlaylistRepository
+import app.musimate.service.repositories.PlaylistTrackRepository
 import app.musimate.service.repositories.TrackRepository
 import app.musimate.service.utils.Platform
 import app.musimate.service.utils.Utils
@@ -26,6 +24,7 @@ import java.io.InputStream
 @Service
 class PlaylistService(
     private val playlistRepository: PlaylistRepository,
+    private val playlistTrackRepository: PlaylistTrackRepository,
     private val trackRepository: TrackRepository,
     private val authService: AuthenticationService,
     private val youtubeService: YoutubeDataService,
@@ -84,8 +83,8 @@ class PlaylistService(
             throw InvalidPlaylistIdException()
         }
 
-        val pageable = Utils.toPageable(query, Track::name.name, Direction.ASC)
-        val page = trackRepository.findTracksByPlaylistsId(playlistId, pageable)
+        val pageable = Utils.toPageable(query)
+        val page = trackRepository.findPlaylistTracks(playlistId, pageable)
         
         return page.map { createTrackDto(it) }
     }
@@ -106,7 +105,10 @@ class PlaylistService(
             track = trackRepository.save(createTransientTrack(source))
         }
 
-        playlist.addTrack(track)
+        playlistTrackRepository.insertTrackToPlaylist(
+            playlistId = playlist.id!!,
+            trackId = track.id!!
+        )
         return createTrackDto(track)
     }
 
@@ -116,7 +118,31 @@ class PlaylistService(
             throw InvalidPlaylistIdException()
         }
 
-        playlistRepository.removeTrackFromPlaylist(playlistId, trackId)
+        playlistTrackRepository.removeTrackFromPlaylist(playlistId, trackId)
+    }
+
+    @Transactional
+    fun moveTrackInPlaylist(playlistId: Int, trackId: Int, targetIndex: Int) {
+        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authUser)) {
+            throw InvalidPlaylistIdException()
+        }
+
+        val result = playlistTrackRepository.findTrackIndexAndPlaylistLength(playlistId, trackId)
+        val currentIndex = result.get(0) as Int
+        val playlistLength = result.get(1) as Long
+        if (targetIndex < 0 || targetIndex >= playlistLength) {
+            throw RuntimeException("Invalid Index")
+        }
+
+        if (currentIndex == targetIndex) {
+            return
+        }
+
+        if (currentIndex < targetIndex) {
+            playlistTrackRepository.moveTrackInPlaylistForward(playlistId, currentIndex, targetIndex)
+        } else {
+            playlistTrackRepository.moveTrackInPlaylistBackward(playlistId, currentIndex, targetIndex)
+        }
     }
 
     private fun createTransientTrack(source: TrackSource) = when (source) {

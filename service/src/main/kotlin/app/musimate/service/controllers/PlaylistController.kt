@@ -89,4 +89,13 @@ class PlaylistController(
     ) {
         playlistService.removeTrackFromPlaylist(playlistId, trackId)
     }
+
+    @PutMapping("{playlistId}/tracks/order")
+    @ResponseStatus(HttpStatus.OK)
+    fun moveTrackInPlaylist(
+        @PathVariable playlistId: Int,
+        @RequestBody position: TrackPosition
+    ) {
+        playlistService.moveTrackInPlaylist(playlistId, position.id, position.index)
+    }
 }

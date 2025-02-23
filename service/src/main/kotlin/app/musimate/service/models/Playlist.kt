@@ -32,20 +32,14 @@ class Playlist(
     @Column(name = "total_duration")
     var totalDurationSec: Long = 0,
 
-    @ManyToMany(
+
+    @OneToMany(
+        mappedBy = "playlist",
         fetch = FetchType.LAZY,
-        cascade = [CascadeType.PERSIST, CascadeType.MERGE]
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
     )
-    @JoinTable(
-        name = "playlists_tracks",
-        joinColumns = [
-            JoinColumn(name = "playlist_id", referencedColumnName = "id")
-        ],
-        inverseJoinColumns = [
-            JoinColumn(name = "track_id", referencedColumnName = "id")
-        ],
-    )
-    var tracks: MutableSet<Track> = mutableSetOf(),
+    var tracks: MutableList<PlaylistTrack> = mutableListOf(),
 ) {
     @CreatedDate
     @Column(name = "created_data", nullable = false)
@@ -54,13 +48,6 @@ class Playlist(
     @LastModifiedDate
     @Column(name = "last_modified", nullable = false)
     lateinit var lastModifier: LocalDateTime
-
-    fun addTrack(track: Track) {
-        tracks.add(track)
-        track.playlists.add(this)
-        totalDurationSec += track.durationSec
-        trackCount++
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {

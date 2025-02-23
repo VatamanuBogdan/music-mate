@@ -14,8 +14,4 @@ interface PlaylistRepository: JpaRepository<Playlist, Int>, PagingAndSortingRepo
     fun findPlaylistsByOwner(owner: User, pageable: Pageable): Page<Playlist>
     fun findPlaylistByIdAndOwner(id: Int, owner: User): Playlist?
     fun existsPlaylistByIdAndOwner(id: Int, owner: User): Boolean
-
-    @Modifying
-    @Query("DELETE FROM playlists_tracks WHERE playlist_id = :playlistId AND track_id = :trackId", nativeQuery = true)
-    fun removeTrackFromPlaylist(@Param("playlistId") playlistId: Int, @Param("trackId") trackId: Int)
 }
