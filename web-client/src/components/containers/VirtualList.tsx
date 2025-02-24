@@ -1,14 +1,20 @@
 import { ReactElement, useMemo, useRef, useState } from 'react';
 import { RangeIndex, isArray } from 'utils/types';
 
-export interface VirtualizedListItems<T> {
+export interface VirtualListItems<T> {
     length: number;
     at(index: number): T;
     map<U>(range: RangeIndex, callback: (item: T, index: number) => U): U[];
 }
 
-interface VirtualizedListProps<T> {
-    items: Array<T> | VirtualizedListItems<T>;
+type ItemInteractionProps<T> = {
+    item: T;
+    index: number;
+    target: HTMLElement;
+};
+
+interface VirtualListProps<T> {
+    items: Array<T> | VirtualListItems<T>;
     maxItemsCount?: number;
     itemRendering: {
         renderItem: (item: T, index: number) => ReactElement;
@@ -24,22 +30,24 @@ interface VirtualizedListProps<T> {
         bottom?: number;
         gap?: number;
     };
-    onSelect?: (item: T, index: number) => void;
+    onPress?: (props: ItemInteractionProps<T>) => void;
+    onHover?: (props: ItemInteractionProps<T> | null) => void;
     onScroll?: (range: RangeIndex) => void;
     onScrollEnd?: (range: RangeIndex) => void;
 }
 
-export default function VirtualizedList<T>({
+export default function VirtualList<T>({
     items,
     maxItemsCount,
     itemRendering: { renderItem, itemKey },
     overscan,
     sizes,
     spacing,
-    onSelect,
+    onPress,
+    onHover,
     onScroll,
     onScrollEnd,
-}: VirtualizedListProps<T>): JSX.Element {
+}: VirtualListProps<T>): JSX.Element {
     const [scrollTopDistance, setScrollTopDistance] = useState(0);
 
     const rowHeight = sizes.itemHeigth + (spacing.gap ?? 0);
@@ -57,6 +65,7 @@ export default function VirtualizedList<T>({
 
     const { startIndex, endIndex } = computeItemsRange(scrollTopDistance);
     const previousRangeRef = useRef<RangeIndex>({ startIndex, endIndex });
+    const previousHoveredIndex = useRef<number | null>(null);
 
     const itemsSlice = useMemo(() => {
         if (!isArray(items)) {
@@ -89,21 +98,53 @@ export default function VirtualizedList<T>({
         }
     }
 
-    function handledItemSelection(e: React.MouseEvent<HTMLElement>) {
-        if (!onSelect) {
-            return;
-        }
-
-        const item = (e.target as HTMLElement).closest('[v-li-index]');
+    function findItemIndexElement(target: EventTarget): ItemInteractionProps<T> | null {
+        const item = (target as HTMLElement).closest('[v-li-index]');
         if (!item) {
-            return;
+            return null;
         }
 
         const stringIndex = item.getAttribute('v-li-index');
-        if (stringIndex) {
-            const index = parseInt(stringIndex);
-            onSelect(itemsSlice[index], index);
+        if (!stringIndex) {
+            return null;
         }
+
+        const index = parseInt(stringIndex);
+        return {
+            index,
+            target: target as HTMLElement,
+            item: itemsSlice[index],
+        };
+    }
+
+    function handledClick(e: React.MouseEvent<HTMLElement>) {
+        if (!onPress) {
+            return;
+        }
+
+        const props = findItemIndexElement(e.target);
+        if (props) {
+            onPress(props);
+        }
+    }
+
+    function handleMouseMove(e: React.MouseEvent<HTMLElement>) {
+        if (!onHover) {
+            return;
+        }
+
+        const props = findItemIndexElement(e.target);
+        if (props) {
+            onHover(props);
+        }
+    }
+
+    function handleMouseLeave() {
+        previousHoveredIndex.current = null;
+        if (!onHover) {
+            return;
+        }
+        onHover(null);
     }
 
     const renderedItems = itemsSlice.map((item, index) => {
@@ -126,7 +167,9 @@ export default function VirtualizedList<T>({
             >
                 <div
                     style={{ transform: `translateY(${startIndex * rowHeight}px)` }}
-                    onClick={onSelect ? handledItemSelection : undefined}
+                    onClick={onPress ? handledClick : undefined}
+                    onMouseMove={onHover ? handleMouseMove : undefined}
+                    onMouseLeave={onHover ? handleMouseLeave : undefined}
                 >
                     {renderedItems}
                 </div>
