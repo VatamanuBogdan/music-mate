@@ -84,3 +84,19 @@ export function formatPlayerDuration(duration: Duration | number): string {
         return `${formattedMinutes}:${formattedSeconds}`;
     }
 }
+
+export function binarySearch(arr: number[], value: number): number {
+    let startIndex = 0;
+    let endIndex = arr.length - 1;
+    while (startIndex <= endIndex) {
+        const midIndex = Math.floor((endIndex + startIndex) / 2);
+        if (arr[midIndex] === value) {
+            return midIndex;
+        } else if (arr[midIndex] > value) {
+            endIndex = midIndex - 1;
+        } else {
+            startIndex = midIndex + 1;
+        }
+    }
+    return startIndex;
+}

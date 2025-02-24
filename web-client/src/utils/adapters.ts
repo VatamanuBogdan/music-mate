@@ -1,28 +1,28 @@
-import { VirtualizedListItems } from 'components/containers/VirtualizedList';
+import { VirtualListItems } from 'components/containers/VirtualList';
 
-import { PagesFlattener } from './page-flattener';
+import { FlattenedPages } from './flattened-pages';
 import { RangeIndex } from './types';
 
-class VirtualizedListPaginatedItems<T> implements VirtualizedListItems<T> {
-    private flattener: PagesFlattener<T>;
+class VirtualListFlattenedPages<T> implements VirtualListItems<T> {
+    private flattenedPages: FlattenedPages<T>;
 
-    public constructor(flattener: PagesFlattener<T>) {
-        this.flattener = flattener;
+    public constructor(flattenedPages: FlattenedPages<T>) {
+        this.flattenedPages = flattenedPages;
     }
 
     public at(index: number): T {
-        return this.flattener.at(index);
+        return this.flattenedPages.at(index);
     }
 
     public get length(): number {
-        return this.flattener.length;
+        return this.flattenedPages.length;
     }
 
     public map<U>(range: RangeIndex, callback: (value: T, index: number) => U): U[] {
         const mappedValues = new Array<U>(range.endIndex - range.startIndex + 1);
         let index = 0;
 
-        for (const value of this.flattener.flattenRange(range)) {
+        for (const value of this.flattenedPages.flattenRange(range)) {
             mappedValues[index] = callback(value, index);
             index += 1;
         }
@@ -33,4 +33,4 @@ class VirtualizedListPaginatedItems<T> implements VirtualizedListItems<T> {
     }
 }
 
-export { VirtualizedListPaginatedItems };
+export { VirtualListFlattenedPages };
