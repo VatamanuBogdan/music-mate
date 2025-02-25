@@ -30,6 +30,7 @@ interface VirtualListProps<T, D = undefined> {
         top?: number;
         bottom?: number;
         gap?: number;
+        horizontalPadding?: number;
     };
     onItemClick?: (props: InteractionArgs<T>) => void;
     onItemHover?: (props: InteractionArgs<T> | null) => void;
@@ -166,6 +167,8 @@ export default function VirtualList<T, D>({
                     height: (scrollEndIndex + 1) * rowHeight,
                     marginTop: spacing.top ?? 0,
                     marginBottom: spacing.bottom ?? 0,
+                    paddingLeft: spacing.horizontalPadding ?? 0,
+                    paddingRight: spacing.horizontalPadding ?? 0,
                 }}
             >
                 <div

@@ -16,7 +16,7 @@ export default function usePaginatedQuery<T>(args: {
     enabled?: boolean;
 }): PaginatedQueryResult<T> {
     const query = useInfiniteQuery({
-        queryKey: [...args.queryKey, args.pageSize],
+        queryKey: [...args.queryKey],
         queryFn: ({ pageParam }) => {
             return args.queryFn(pageParam);
         },
