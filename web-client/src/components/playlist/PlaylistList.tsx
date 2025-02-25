@@ -10,7 +10,7 @@ import { remToPx } from 'utils/transforms';
 const playlistPageSize = 10;
 const listOverscan = 5;
 
-const ListPlaylistCard: VirtualListItemComponent<Playlist> = ({ item }) => {
+const PlaylistCardAdapter: VirtualListItemComponent<Playlist> = ({ item }) => {
     return <PlaylistCard playlist={item} />;
 };
 
@@ -51,7 +51,7 @@ export default function PlaylistList(): JSX.Element {
                         }
                     }}
                 >
-                    {ListPlaylistCard}
+                    {PlaylistCardAdapter}
                 </VirtualList>
             }
         </div>
