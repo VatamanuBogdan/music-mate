@@ -1,25 +1,26 @@
 import { ReactElement, useMemo, useRef, useState } from 'react';
 import { RangeIndex, isArray } from 'utils/types';
 
-export interface VirtualListItems<T> {
+interface ListItems<T> {
     length: number;
     at(index: number): T;
     map<U>(range: RangeIndex, callback: (item: T, index: number) => U): U[];
 }
 
-type ItemInteractionProps<T> = {
+type InteractionArgs<T> = {
     item: T;
     index: number;
     target: HTMLElement;
 };
 
-interface VirtualListProps<T> {
-    items: Array<T> | VirtualListItems<T>;
+type ItemComponent<T, D = undefined> = (props: { item: T; index: number; data: D }) => ReactElement;
+
+interface VirtualListProps<T, D = undefined> {
+    items: Array<T> | ListItems<T>;
+    children: ItemComponent<T, D>;
+    childrenKey: (item: T, index: number) => React.Key;
+    childrenData: D;
     maxItemsCount?: number;
-    itemRendering: {
-        renderItem: (item: T, index: number) => ReactElement;
-        itemKey: (item: T, index: number) => React.Key;
-    };
     overscan: number;
     sizes: {
         itemHeigth: number;
@@ -30,24 +31,26 @@ interface VirtualListProps<T> {
         bottom?: number;
         gap?: number;
     };
-    onPress?: (props: ItemInteractionProps<T>) => void;
-    onHover?: (props: ItemInteractionProps<T> | null) => void;
+    onItemClick?: (props: InteractionArgs<T>) => void;
+    onItemHover?: (props: InteractionArgs<T> | null) => void;
     onScroll?: (range: RangeIndex) => void;
     onScrollEnd?: (range: RangeIndex) => void;
 }
 
-export default function VirtualList<T>({
+export default function VirtualList<T, D>({
     items,
+    children,
+    childrenData,
     maxItemsCount,
-    itemRendering: { renderItem, itemKey },
+    childrenKey,
     overscan,
     sizes,
     spacing,
-    onPress,
-    onHover,
+    onItemClick,
+    onItemHover,
     onScroll,
     onScrollEnd,
-}: VirtualListProps<T>): JSX.Element {
+}: VirtualListProps<T, D>): JSX.Element {
     const [scrollTopDistance, setScrollTopDistance] = useState(0);
 
     const rowHeight = sizes.itemHeigth + (spacing.gap ?? 0);
@@ -98,13 +101,13 @@ export default function VirtualList<T>({
         }
     }
 
-    function findItemIndexElement(target: EventTarget): ItemInteractionProps<T> | null {
-        const item = (target as HTMLElement).closest('[v-li-index]');
+    function findItemIndexElement(target: EventTarget): InteractionArgs<T> | null {
+        const item = (target as HTMLElement).closest('[data-vli-idx]');
         if (!item) {
             return null;
         }
 
-        const stringIndex = item.getAttribute('v-li-index');
+        const stringIndex = item.getAttribute('data-vli-idx');
         if (!stringIndex) {
             return null;
         }
@@ -118,40 +121,40 @@ export default function VirtualList<T>({
     }
 
     function handledClick(e: React.MouseEvent<HTMLElement>) {
-        if (!onPress) {
+        if (!onItemClick) {
             return;
         }
 
         const props = findItemIndexElement(e.target);
         if (props) {
-            onPress(props);
+            onItemClick(props);
         }
     }
 
     function handleMouseMove(e: React.MouseEvent<HTMLElement>) {
-        if (!onHover) {
+        if (!onItemHover) {
             return;
         }
 
         const props = findItemIndexElement(e.target);
         if (props) {
-            onHover(props);
+            onItemHover(props);
         }
     }
 
     function handleMouseLeave() {
         previousHoveredIndex.current = null;
-        if (!onHover) {
+        if (!onItemHover) {
             return;
         }
-        onHover(null);
+        onItemHover(null);
     }
 
     const renderedItems = itemsSlice.map((item, index) => {
-        const key = itemKey(item, startIndex + index);
+        const key = childrenKey(item, startIndex + index);
         return (
-            <li key={key} v-li-index={index} style={{ height: `${rowHeight}px` }}>
-                {renderItem(item, startIndex + index)}
+            <li key={key} data-vli-idx={index} style={{ height: `${rowHeight}px` }}>
+                {children({ item, index: startIndex + index, data: childrenData })}
             </li>
         );
     });
@@ -167,9 +170,9 @@ export default function VirtualList<T>({
             >
                 <div
                     style={{ transform: `translateY(${startIndex * rowHeight}px)` }}
-                    onClick={onPress ? handledClick : undefined}
-                    onMouseMove={onHover ? handleMouseMove : undefined}
-                    onMouseLeave={onHover ? handleMouseLeave : undefined}
+                    onClick={onItemClick ? handledClick : undefined}
+                    onMouseMove={onItemHover ? handleMouseMove : undefined}
+                    onMouseLeave={onItemHover ? handleMouseLeave : undefined}
                 >
                     {renderedItems}
                 </div>
@@ -177,3 +180,9 @@ export default function VirtualList<T>({
         </ul>
     );
 }
+
+export type {
+    ListItems as VirtualListItems,
+    InteractionArgs as VirtualListInteractionArgs,
+    ItemComponent as VirtualListItemComponent,
+};
