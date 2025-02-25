@@ -1,3 +1,4 @@
+import { TrackSourceDto } from 'api/dtos';
 import { AxiosHeaders, AxiosRequestConfig } from 'axios';
 
 import { Duration, DurationSeconds, isDurationSeconds } from './types';
@@ -99,4 +100,28 @@ export function binarySearch(arr: number[], value: number): number {
         }
     }
     return startIndex;
+}
+
+export function createTrackSource(url: string): TrackSourceDto | null {
+    try {
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname;
+        const searchParams = new URLSearchParams(parsedUrl.search);
+
+        if (hostname === 'www.youtube.com' || hostname === 'youtube.com') {
+            const videoId = searchParams.get('v');
+            if (videoId) {
+                return {
+                    platform: 'YOUTUBE',
+                    value: videoId,
+                };
+            }
+        } else if (hostname === 'www.spotify.com' || hostname === 'sotify.com') {
+            throw Error('NOT IMPLEMENTED');
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
 }

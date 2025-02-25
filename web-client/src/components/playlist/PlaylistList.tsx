@@ -1,13 +1,18 @@
 import { PlaylistCard } from 'components/cards/PlaylistCard';
-import VirtualizedList from 'components/containers/VirtualizedList';
+import VirtualList, { VirtualListItemComponent } from 'components/containers/VirtualList';
 import usePlaylists from 'hooks/usePlaylists';
 import useVhSizes from 'hooks/useVhSizes';
-import useVirtualizedListItems from 'hooks/useVirtualListPages';
+import useVirtualListAdapter from 'hooks/useVirtualListAdapter';
 import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
+import { Playlist } from 'types/Playlist';
 import { remToPx } from 'utils/transforms';
 
 const playlistPageSize = 10;
 const listOverscan = 5;
+
+const ListPlaylistCard: VirtualListItemComponent<Playlist> = ({ item }) => {
+    return <PlaylistCard playlist={item} />;
+};
 
 export default function PlaylistList(): JSX.Element {
     const {
@@ -18,19 +23,17 @@ export default function PlaylistList(): JSX.Element {
 
     const { selectPlaylist } = useSelectedPlaylist();
 
-    const items = useVirtualizedListItems(playlistPages, playlistPageSize);
+    const items = useVirtualListAdapter(playlistPages);
 
     const [listHeight] = useVhSizes(100);
 
     return (
         <div className="max-h-[100vh] scrollbar">
             {
-                <VirtualizedList
+                <VirtualList
                     items={items}
-                    itemRendering={{
-                        renderItem: (playlist) => <PlaylistCard playlist={playlist} />,
-                        itemKey: (playlist) => playlist.id,
-                    }}
+                    childrenData={undefined}
+                    childrenKey={(playlist) => playlist.id}
                     overscan={listOverscan}
                     sizes={{
                         listHeight: listHeight,
@@ -41,13 +44,15 @@ export default function PlaylistList(): JSX.Element {
                         bottom: remToPx(10.0),
                         gap: remToPx(0.3),
                     }}
-                    onSelect={selectPlaylist}
+                    onItemClick={({ item: playlist }) => selectPlaylist(playlist)}
                     onScrollEnd={() => {
                         if (!isFetchingNextPage) {
                             fetchNextPage();
                         }
                     }}
-                />
+                >
+                    {ListPlaylistCard}
+                </VirtualList>
             }
         </div>
     );
