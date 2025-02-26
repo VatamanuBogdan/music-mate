@@ -61,7 +61,10 @@ class FlattenedVariablePages<T> extends FlattenedPagesBase<T> {
 
     protected getPageIndexes(index: number): PageIndexes {
         const pageIndex = binarySearch(this.pageIndexes, index);
-        const inPageIndex = index - (this.pageIndexes[pageIndex - 1] ?? 0);
+        let inPageIndex = index;
+        if (pageIndex > 0) {
+            inPageIndex -= this.pageIndexes[pageIndex - 1] + 1;
+        }
 
         return { pageIndex, inPageIndex };
     }
