@@ -117,7 +117,7 @@ export default function VirtualList<T, D>({
         return {
             index,
             target: target as HTMLElement,
-            item: itemsSlice[index],
+            item: itemsSlice[index - startIndex],
         };
     }
 
@@ -152,10 +152,14 @@ export default function VirtualList<T, D>({
     }
 
     const renderedItems = itemsSlice.map((item, index) => {
-        const key = childrenKey(item, startIndex + index);
+        const itemIndex = startIndex + index;
         return (
-            <li key={key} data-vli-idx={index} style={{ height: `${rowHeight}px` }}>
-                {children({ item, index: startIndex + index, data: childrenData })}
+            <li
+                key={childrenKey(item, itemIndex)}
+                data-vli-idx={itemIndex}
+                style={{ height: `${rowHeight}px` }}
+            >
+                {children({ item, index: itemIndex, data: childrenData })}
             </li>
         );
     });
