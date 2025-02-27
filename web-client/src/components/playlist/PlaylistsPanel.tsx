@@ -9,7 +9,7 @@ export default function PlaylistPanel(): JSX.Element {
 
     return (
         <div className="relative w-[30rem] bg-slate-800 bg-opacity-75 overflow-visible">
-            <div className="absolute top-0 left-0 right-0 z-10">
+            <div className="">
                 <PlaylistHeader
                     height="h-20"
                     defaultSource="spotify"

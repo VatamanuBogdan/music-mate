@@ -7,19 +7,14 @@ import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
 import { Playlist } from 'types/Playlist';
 import { remToPx } from 'utils/transforms';
 
-const playlistPageSize = 10;
-const listOverscan = 5;
+const LIST_OVERSCAN = 10;
 
 const PlaylistCardAdapter: VirtualListItemComponent<Playlist> = ({ item }) => {
     return <PlaylistCard playlist={item} />;
 };
 
 export default function PlaylistList(): JSX.Element {
-    const {
-        pages: playlistPages,
-        fetchNextPage,
-        isFetchingNextPage,
-    } = usePlaylists(playlistPageSize);
+    const { pages: playlistPages, fetchNextPage, isFetchingNextPage } = usePlaylists();
 
     const { selectPlaylist } = useSelectedPlaylist();
 
@@ -34,13 +29,13 @@ export default function PlaylistList(): JSX.Element {
                     items={items}
                     childrenData={undefined}
                     childrenKey={(playlist) => playlist.id}
-                    overscan={listOverscan}
+                    overscan={LIST_OVERSCAN}
                     sizes={{
-                        listHeight: listHeight,
+                        listHeight: listHeight - remToPx(5),
                         itemHeigth: remToPx(6),
                     }}
                     spacing={{
-                        top: remToPx(5.3),
+                        top: remToPx(0.5),
                         bottom: remToPx(10.0),
                         gap: remToPx(0.3),
                     }}
