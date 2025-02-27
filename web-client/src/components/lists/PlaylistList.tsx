@@ -1,5 +1,5 @@
 import { PlaylistCard } from 'components/cards/PlaylistCard';
-import VirtualList, { VirtualListItemComponent } from 'components/containers/VirtualList';
+import VirtualList, { VirtualListItemComponent } from 'components/lists/VirtualList';
 import usePlaylists from 'hooks/usePlaylists';
 import useVhSizes from 'hooks/useVhSizes';
 import useVirtualListAdapter from 'hooks/useVirtualListAdapter';

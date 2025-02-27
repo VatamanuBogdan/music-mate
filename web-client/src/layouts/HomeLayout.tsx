@@ -3,9 +3,9 @@ import PlayerProvider from 'providers/PlayerProvider';
 import SelectedPlaylistProvider from 'providers/SelectedPlaylistProvider';
 
 import AccountAvatar from '../components/AccountAvatar';
+import TrackList from '../components/lists/TrackList';
 import NavigationBar from '../components/NavigationBar';
 import { FloatingPlayer } from '../components/player/FloatingPlayer';
-import TrackList from '../components/TrackList';
 
 export default function HomeLayout(): JSX.Element {
     return (

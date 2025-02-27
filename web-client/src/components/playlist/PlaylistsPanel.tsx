@@ -3,7 +3,7 @@ import AddPlaylistModal from 'components/playlist/PlaylistAddModal';
 import PlaylistHeader, { PlaylistSource } from 'components/playlist/PlaylistsHeader';
 import { useState } from 'react';
 
-import PlaylistList from './PlaylistList';
+import PlaylistList from '../lists/PlaylistList';
 
 export default function PlaylistPanel(): JSX.Element {
     const playlistAddModalDisc = useDisclosure();

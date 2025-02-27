@@ -1,4 +1,4 @@
-import { VirtualListItems } from 'components/containers/VirtualList';
+import { VirtualListItems } from 'components/lists/VirtualList';
 
 import { FlattenedPages } from './flattened-pages';
 import { RangeIndex } from './types';

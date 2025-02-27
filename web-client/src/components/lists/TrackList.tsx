@@ -9,12 +9,12 @@ import { useMemo, useState } from 'react';
 import { Track } from 'types/Track';
 import { remToPx } from 'utils/transforms';
 
-import TrackCard, { TrackCardAttribute } from './cards/TrackCard';
+import TrackCard, { TrackCardAttribute } from '../cards/TrackCard';
 import VirtualList, {
     VirtualListInteractionArgs,
     VirtualListItemComponent,
-} from './containers/VirtualList';
-import TrackListHeader from './TrackListHeader';
+} from './VirtualList';
+import TrackListHeader from '../TrackListHeader';
 
 const LIST_OVERSCAN = 5;
 
