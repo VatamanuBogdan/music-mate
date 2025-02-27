@@ -12,6 +12,7 @@ const DELETE_ICON_SIZE = 22;
 interface TrackCardProps {
     track: Track;
     index: number;
+    isSelected?: boolean;
     isHovered?: boolean;
     isRemovable?: boolean;
 }
@@ -21,15 +22,16 @@ export const attr = createDataAttribute<'play' | 'delete'>('track-card');
 export default function TrackCard({
     index,
     track,
+    isSelected,
     isHovered,
     isRemovable,
 }: TrackCardProps): JSX.Element {
-    const background = `${isHovered ? 'bg-slate-700 ' : 'bg-slate-800'} bg-opacity-85`;
+    const background = `${isHovered || isSelected ? 'bg-slate-700 ' : 'bg-slate-800'} bg-opacity-85`;
 
     return (
         <div
             {...attr.set('play')}
-            className={`flex flex-row items-center h-16 w-full px-2 ${background} text-slate-200 rounded-lg cursor-pointer select-none`}
+            className={`flex flex-row items-center h-16 w-full px-2 ${background}  text-slate-200 rounded-lg cursor-pointer select-none`}
         >
             <div className="flex flex-row justify-start items-center flex-grow space-x-4">
                 <div className="h-6 w-10 flex flex-row items-center justify-end">

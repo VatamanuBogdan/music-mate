@@ -1,11 +1,13 @@
-import { Button, Image, Slider } from '@heroui/react';
+import { Button, Slider } from '@heroui/react';
+import { usePlayerActions, usePlayerStatus, usePlayerTimeline } from 'providers/PlayerProvider';
 import { PropsWithChildren } from 'react';
-import { IoPlay, IoPlaySkipBack, IoPlaySkipForward } from 'react-icons/io5';
+import { IoPause, IoPlay, IoPlaySkipBack, IoPlaySkipForward } from 'react-icons/io5';
+import { isArray } from 'utils/types';
 
 import VolumeButton from './VolumeButton';
-import { Track } from '../../types/Track';
 
-const buttonRadius = 20;
+const PLAYBACK_ICON_SIZE = 23;
+const PLAYBACK_PAUSE_ICON_SIZE = 25;
 const sliderLength = 120;
 
 function PlaybackButton(
@@ -15,10 +17,10 @@ function PlaybackButton(
 ): JSX.Element {
     return (
         <Button
-            className="bg-transparent bg-opacity-75 text-slate-300"
+            className="bg-transparent text-slate-300"
             radius="full"
             isIconOnly
-            size="sm"
+            size="md"
             onPress={props.onPress}
         >
             {props.children}
@@ -26,83 +28,85 @@ function PlaybackButton(
     );
 }
 
-interface FloatingPlayerProps {
-    track: Track;
-    defaultSeekOffset: number;
-    defaultVolume: number;
-    onBack?: () => void;
-    onPlayToggle?: () => void;
-    onNext?: () => void;
-    onSeekChange?: (offset: number) => void;
-    onVolumeChange?: (volume: number) => void;
-}
+export function FloatingPlayer(): JSX.Element {
+    const playerStatus = usePlayerStatus();
+    const playerActions = usePlayerActions();
+    const playerProgress = usePlayerTimeline();
 
-export function FloatingPlayer({
-    track,
-    defaultSeekOffset,
-    defaultVolume,
-    onBack,
-    onPlayToggle,
-    onNext,
-    onSeekChange,
-    onVolumeChange,
-}: FloatingPlayerProps): JSX.Element {
-    function onSeekChangeWrapper(value: number | number[]) {
-        if (!onSeekChange) {
-            return;
-        }
+    const track = playerStatus.track;
 
-        if (value instanceof Array) {
-            onSeekChange(value[value.length - 1]);
-        } else {
-            onSeekChange(value);
-        }
+    if (!track) {
+        return <></>;
     }
 
     return (
-        <div className="flex flex-row justify-start w-96 h-32 rounded-lg bg-slate-800 backdrop-blur-md bg-opacity-50 select-none">
-            <Image className="w-32 h-32" radius="md" src={track.thumbnailUrl} />
+        <div className="flex flex-row justify-start w-[27rem] h-[9rem] rounded-lg bg-slate-800 backdrop-blur-md bg-opacity-50 select-none">
+            <img
+                className="w-[9rem] h-[9rem] object-cover rounded-tl-lg rounded-bl-lg"
+                src={track.thumbnailUrl}
+            />
 
             <div className="relative flex flex-col flex-grow justify-end items-center">
                 <div className="self-stretch flex-grow ml-5 mt-4 space-y-[-3px]">
-                    <h2 className="text-slate-300 max-w-40 text-base">{track.artist}</h2>
-                    <h1 className="text-slate-200 max-w-40 text-xl font-bold">{track.name}</h1>
+                    <h2 className="text-slate-300 max-w-[14rem] truncate text-base">
+                        {track.artist}
+                    </h2>
+                    <h1 className="text-slate-200 max-w-[16rem] truncate text-xl font-bold">
+                        {track.name}
+                    </h1>
                 </div>
 
                 <div className="absolute top-2 right-2">
                     <VolumeButton
                         sliderPlacement="right-start"
-                        size={buttonRadius}
+                        size={PLAYBACK_ICON_SIZE}
                         sliderLength={sliderLength}
-                        defaultVolume={defaultVolume}
-                        onVolumeChange={onVolumeChange}
+                        volume={playerStatus.volume}
+                        onVolumeChange={playerActions.setVolume}
                     />
                 </div>
 
-                <div className="w-auto space-x-1 p-2">
-                    <PlaybackButton onPress={onBack}>
-                        <IoPlaySkipBack size={buttonRadius} />
+                <div className="flex flex-row justify-center items-center space-x-1 p-2 ">
+                    <PlaybackButton onPress={playerActions.backward}>
+                        <IoPlaySkipBack size={PLAYBACK_ICON_SIZE} />
                     </PlaybackButton>
 
-                    <PlaybackButton onPress={onPlayToggle}>
-                        <IoPlay size={buttonRadius} />
+                    <PlaybackButton
+                        onPress={() => {
+                            playerActions.togglePlay();
+                        }}
+                    >
+                        {playerStatus.isPlaying ? (
+                            <IoPause size={PLAYBACK_PAUSE_ICON_SIZE} />
+                        ) : (
+                            <IoPlay size={PLAYBACK_ICON_SIZE} />
+                        )}
                     </PlaybackButton>
 
-                    <PlaybackButton onPress={onNext}>
-                        <IoPlaySkipForward size={buttonRadius} />
+                    <PlaybackButton onPress={playerActions.forward}>
+                        <IoPlaySkipForward size={PLAYBACK_ICON_SIZE} />
                     </PlaybackButton>
                 </div>
 
                 <div className="self-stretch mb-[-8px]">
                     <Slider
+                        aria-label="Player Timeline"
                         className="w-full accent-slate-100"
                         color="warning"
                         size="sm"
                         step={1}
                         minValue={0}
-                        maxValue={track.duration}
-                        defaultValue={defaultSeekOffset}
-                        onChange={onSeekChangeWrapper}
+                        maxValue={playerProgress.duration}
+                        value={playerProgress.progress}
+                        onChange={(value) => {
+                            playerActions.pause();
+                            playerActions.progressTo(
+                                isArray(value) ? value[value.length - 1] : value
+                            );
+                        }}
+                        onChangeEnd={() => {
+                            playerActions.play();
+                        }}
                     />
                 </div>
             </div>

@@ -3,8 +3,9 @@ import usePlaylistTracks from 'hooks/usePlaylistTracks';
 import useRemoveTrack from 'hooks/useRemoveTrack';
 import useVhSizes from 'hooks/useVhSizes';
 import useVirtualListAdapter from 'hooks/useVirtualListAdapter';
+import { usePlayerActions, usePlayerStatus } from 'providers/PlayerProvider';
 import { useSelectedPlaylist } from 'providers/SelectedPlaylistProvider';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Track } from 'types/Track';
 import { remToPx } from 'utils/transforms';
 
@@ -15,12 +16,12 @@ import VirtualList, {
 } from './containers/VirtualList';
 import TrackListHeader from './TrackListHeader';
 
-const FETCH_PAGE_SIZE = 15;
 const LIST_OVERSCAN = 5;
 
 type CardData = {
     isRemovable: boolean;
     hoveredIndex: number | null;
+    selectedTrack: Track | null;
 };
 
 const TrackCardAdapter: VirtualListItemComponent<Track, CardData> = ({ item, index, data }) => {
@@ -28,6 +29,7 @@ const TrackCardAdapter: VirtualListItemComponent<Track, CardData> = ({ item, ind
         <TrackCard
             track={item}
             index={index}
+            isSelected={item.id === data.selectedTrack?.id}
             isRemovable={data.isRemovable}
             isHovered={index === data.hoveredIndex}
         />
@@ -41,12 +43,21 @@ export default function TrackList(): JSX.Element {
         pages: tracksPages,
         fetchNextPage,
         isFetchingNextPage,
-    } = usePlaylistTracks(selectedPlaylist?.id, FETCH_PAGE_SIZE);
+    } = usePlaylistTracks(selectedPlaylist?.id);
 
-    const [childrenData, setChildrenData] = useState<CardData>({
-        isRemovable: false,
-        hoveredIndex: null,
-    });
+    const { launch: playerLaunch } = usePlayerActions();
+    const { track: selectedTrack } = usePlayerStatus();
+
+    const [isRemovable, setRemoval] = useState(false);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+    const childrenData = useMemo(() => {
+        return {
+            isRemovable,
+            hoveredIndex,
+            selectedTrack,
+        };
+    }, [isRemovable, hoveredIndex, selectedTrack]);
 
     const items = useVirtualListAdapter(tracksPages);
 
@@ -56,24 +67,25 @@ export default function TrackList(): JSX.Element {
     const [listHeight] = useVhSizes(100);
 
     function handleEditChange(enabled: boolean) {
-        setChildrenData({
-            ...childrenData,
-            isRemovable: enabled,
-        });
+        setRemoval(enabled);
     }
 
-    function handleItemClick({ item, target }: VirtualListInteractionArgs<Track>) {
+    function handleItemClick({ item, index, target }: VirtualListInteractionArgs<Track>) {
         const value = TrackCardAttribute.closestValue(target);
-        if (value === 'delete') {
-            removeTrack(item.id);
+        switch (value) {
+            case 'play':
+                if (selectedPlaylist) {
+                    playerLaunch(selectedPlaylist, index);
+                }
+                break;
+            case 'delete':
+                removeTrack(item.id);
+                break;
         }
     }
 
     function handleItemHover(args: VirtualListInteractionArgs<Track> | null) {
-        setChildrenData({
-            ...childrenData,
-            hoveredIndex: args?.index ?? null,
-        });
+        setHoveredIndex(args?.index ?? null);
     }
 
     function handleScrollEnd() {

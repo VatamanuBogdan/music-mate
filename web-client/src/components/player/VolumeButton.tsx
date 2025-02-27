@@ -6,7 +6,7 @@ interface VolumeButtonProps {
     size: number;
     sliderLength: number;
     sliderPlacement?: OverlayPlacement;
-    defaultVolume?: number;
+    volume?: number;
     onVolumeChange?: (volume: number) => void;
 }
 
@@ -14,7 +14,7 @@ export default function VolumeButton({
     size,
     sliderLength,
     sliderPlacement,
-    defaultVolume,
+    volume,
     onVolumeChange,
 }: VolumeButtonProps): JSX.Element {
     function onChangeWrapper(value: number | number[]) {
@@ -23,7 +23,7 @@ export default function VolumeButton({
         }
 
         if (value instanceof Array) {
-            onVolumeChange(value[0]);
+            onVolumeChange(value[value.length - 1]);
         } else {
             onVolumeChange(value);
         }
@@ -45,6 +45,7 @@ export default function VolumeButton({
 
             <PopoverContent>
                 <Slider
+                    aria-label="Volume"
                     style={{ height: sliderLength }}
                     orientation="vertical"
                     color="warning"
@@ -52,7 +53,7 @@ export default function VolumeButton({
                     step={1}
                     minValue={0}
                     maxValue={100}
-                    defaultValue={defaultVolume}
+                    value={volume}
                     onChange={onChangeWrapper}
                 />
             </PopoverContent>
