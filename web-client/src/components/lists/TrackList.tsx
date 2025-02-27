@@ -9,11 +9,8 @@ import { useMemo, useState } from 'react';
 import { Track } from 'types/Track';
 import { remToPx } from 'utils/transforms';
 
+import VirtualList, { VirtualListInteractionArgs, VirtualListItemComponent } from './VirtualList';
 import TrackCard, { TrackCardAttribute } from '../cards/TrackCard';
-import VirtualList, {
-    VirtualListInteractionArgs,
-    VirtualListItemComponent,
-} from './VirtualList';
 import TrackListHeader from '../TrackListHeader';
 
 const LIST_OVERSCAN = 5;
@@ -96,11 +93,13 @@ export default function TrackList(): JSX.Element {
 
     if (!selectedPlaylist) {
         return (
-            <div className="flex w-full h-full flex-row items-center justify-center">
+            <div className="flex w-full h-full flex-row items-center justify-center text-2xl font-bold text-slate-200 bg-slate-800 bg-opacity-70 ">
                 No playlist selected
             </div>
         );
     }
+
+    const isPlaylistEmpty = items.length === 0 && isFetchingNextPage === false;
 
     return (
         <div className="h-[calc(100vh-5rem)] w-full bg-slate-800 bg-opacity-70 scrollbar">
@@ -109,26 +108,32 @@ export default function TrackList(): JSX.Element {
                 onAddTrack={(url) => addTrack(url)}
                 onEditChange={handleEditChange}
             />
-            <VirtualList
-                items={items}
-                childrenData={childrenData}
-                childrenKey={(track) => track.id}
-                overscan={LIST_OVERSCAN}
-                sizes={{
-                    listHeight: listHeight - remToPx(10),
-                    itemHeigth: remToPx(4),
-                }}
-                spacing={{
-                    top: remToPx(0.3),
-                    gap: remToPx(0.3),
-                    horizontalPadding: remToPx(0.5),
-                }}
-                onItemClick={handleItemClick}
-                onItemHover={handleItemHover}
-                onScrollEnd={handleScrollEnd}
-            >
-                {TrackCardAdapter}
-            </VirtualList>
+            {isPlaylistEmpty ? (
+                <div className="h-full flex flex-row justify-center items-center text-2xl font-bold text-slate-200">
+                    Empty Playlist
+                </div>
+            ) : (
+                <VirtualList
+                    items={items}
+                    childrenData={childrenData}
+                    childrenKey={(track) => track.id}
+                    overscan={LIST_OVERSCAN}
+                    sizes={{
+                        listHeight: listHeight - remToPx(10),
+                        itemHeigth: remToPx(4),
+                    }}
+                    spacing={{
+                        top: remToPx(0.3),
+                        gap: remToPx(0.3),
+                        horizontalPadding: remToPx(0.5),
+                    }}
+                    onItemClick={handleItemClick}
+                    onItemHover={handleItemHover}
+                    onScrollEnd={handleScrollEnd}
+                >
+                    {TrackCardAdapter}
+                </VirtualList>
+            )}
         </div>
     );
 }
