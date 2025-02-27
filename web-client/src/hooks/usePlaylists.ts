@@ -3,10 +3,12 @@ import { Playlist } from 'types/Playlist';
 
 import usePaginatedQuery, { PaginatedQueryResult } from './usePaginatedQuery';
 
-export default function usePlaylists(pageSize: number): PaginatedQueryResult<Playlist> {
+const PAGE_SIZE = 50;
+
+export default function usePlaylists(): PaginatedQueryResult<Playlist> {
     return usePaginatedQuery({
         queryKey: ['playlist'],
         queryFn: (pageParam) => PlaylistApi.fetchPlaylists(pageParam),
-        pageSize,
+        pageSize: PAGE_SIZE,
     });
 }
