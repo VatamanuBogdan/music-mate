@@ -1,6 +1,6 @@
 import { PropsWithChildren } from "react";
 import { Navigate } from "react-router";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "../providers/AuthProvider";
 
 type ProtectedRouteProps = PropsWithChildren & {
     fallbackRoute: string

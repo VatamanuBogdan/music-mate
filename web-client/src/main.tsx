@@ -4,7 +4,7 @@ import React, { PropsWithChildren } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router';
 
-import { AuthProvider } from './components/AuthProvider';
+import { AuthProvider } from './providers/AuthProvider';
 import ProtectedRoute from './components/ProtectedRoute';
 import AuthenticationLayout from './layouts/AuthenticationLayout';
 import HomeLayout from './layouts/HomeLayout';

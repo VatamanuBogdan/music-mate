@@ -1,6 +1,6 @@
 import InputField from "../components/InputField";
 import useFormInput from "../hooks/useFormInput";
-import { useAuth } from "../components/AuthProvider";
+import { useAuth } from "../providers/AuthProvider";
 import { useNavigate } from "react-router";
 
 export default function SignInForm() {

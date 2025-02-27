@@ -1,5 +1,5 @@
 import { Avatar, Button, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
-import { useAccount, useAuth } from './AuthProvider';
+import { useAccount, useAuth } from '../providers/AuthProvider';
 
 export default function AccountAvatar() {
     const auth = useAuth();
