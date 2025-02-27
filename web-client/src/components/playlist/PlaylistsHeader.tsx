@@ -8,14 +8,14 @@ type PlaylistSource = 'spotify' | 'youtube' | 'mixed';
 
 interface PlaylistHeaderProps {
     height: string;
-    defaultSource: PlaylistSource;
+    selectedSource: PlaylistSource;
     onAddPress?: () => void;
     onSourceChange?: (source: PlaylistSource) => void;
 }
 
 export default function PlaylistHeader({
     height,
-    defaultSource,
+    selectedSource,
     onSourceChange,
     onAddPress,
 }: PlaylistHeaderProps): JSX.Element {
@@ -45,7 +45,7 @@ export default function PlaylistHeader({
                     tab: 'w-12 h-12',
                     cursor: 'bg-slate-200',
                 }}
-                defaultSelectedKey={defaultSource}
+                selectedKey={selectedSource}
                 onSelectionChange={(s) => onSourceChange?.(s as PlaylistSource)}
             >
                 <Tab key="spotify" title={<FaSpotify size={sourceIconSize} />} />
@@ -55,3 +55,5 @@ export default function PlaylistHeader({
         </div>
     );
 }
+
+export type { PlaylistSource };
