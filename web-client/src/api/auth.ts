@@ -1,6 +1,12 @@
-import { applyAccessTokenTo } from "../utils/helpers";
-import { requestApi } from "./client"
-import { CredentialsDto, AuthTokenDto, AuthenticationDto, AccountInfosDto } from "./dtos";
+import { requestApi } from './client';
+import {
+    AccountInfosDto,
+    AuthTokenDto,
+    AuthenticationDto,
+    CredentialsDto,
+    SignUpDataDto,
+} from './dtos';
+import { applyAccessTokenTo } from '../utils/helpers';
 
 const ENDPOINT_BASE = 'auth';
 
@@ -9,8 +15,19 @@ async function signIn(credentials: CredentialsDto): Promise<AuthenticationDto> {
         method: 'post',
         url: `${ENDPOINT_BASE}/signin`,
         data: credentials,
-        withCredentials: true
-    }
+        withCredentials: true,
+    };
+
+    return requestApi<AuthenticationDto>(config);
+}
+
+async function signUp(data: SignUpDataDto): Promise<AuthenticationDto> {
+    const config = {
+        method: 'post',
+        url: `${ENDPOINT_BASE}/signup`,
+        data,
+        withCredentials: true,
+    };
 
     return requestApi<AuthenticationDto>(config);
 }
@@ -19,8 +36,8 @@ async function signOut(): Promise<void> {
     const config = {
         method: 'post',
         url: `${ENDPOINT_BASE}/signout`,
-        withCredentials: true
-    }
+        withCredentials: true,
+    };
 
     return requestApi<void>(config);
 }
@@ -29,8 +46,8 @@ async function refreshAccessToken(): Promise<AuthTokenDto> {
     const config = {
         method: 'get',
         url: `${ENDPOINT_BASE}/refresh`,
-        withCredentials: true
-    }
+        withCredentials: true,
+    };
 
     return requestApi<AuthTokenDto>(config);
 }
@@ -38,8 +55,8 @@ async function refreshAccessToken(): Promise<AuthTokenDto> {
 async function fetchAccountInfos(accessToken?: string): Promise<AccountInfosDto> {
     const config = {
         method: 'get',
-        url: `${ENDPOINT_BASE}/account`
-    }
+        url: `${ENDPOINT_BASE}/account`,
+    };
 
     if (accessToken) {
         applyAccessTokenTo(accessToken, config);
@@ -49,5 +66,9 @@ async function fetchAccountInfos(accessToken?: string): Promise<AccountInfosDto>
 }
 
 export default {
-    signIn, signOut, refreshAccessToken, fetchAccountInfos
-}
+    signIn,
+    signUp,
+    signOut,
+    refreshAccessToken,
+    fetchAccountInfos,
+};

@@ -1,62 +1,45 @@
-import { useState } from "react"
-import { Outlet, useNavigate } from "react-router";
+import { Tab, Tabs } from '@heroui/react';
+import logo from 'assets/logo.png';
+import { Outlet, useNavigate } from 'react-router';
 
-import ToggleGroup from '../components/ToggleGroup';
-import { IdentifiableValue } from "../utils/helpers";
+import MusicMateLogo from '../components/MusicMateLogo';
 
-import logo from '../assets/logo.png'
-import MusicMateLogo from "../components/MusicMateLogo";
-
-enum AuthenticationType {
-    SIGN_IN,
-    SIGN_UP
-}
-
-const authTypeItems: IdentifiableValue<AuthenticationType, string>[] = [
-    { id: AuthenticationType.SIGN_IN, value: 'Sign In' },
-    { id: AuthenticationType.SIGN_UP, value: 'Sign Up' }
-]
-
-const authTypePaths: Record<AuthenticationType, string> = {
-    [AuthenticationType.SIGN_IN]: '/login',
-    [AuthenticationType.SIGN_UP]: '/register'
-};
-
-export default function AuthenticationLayout() {
-
-    const [selectedAuthType, setAuthenticationType] = useState<number>(0);
+export default function AuthenticationLayout(): JSX.Element {
     const navigate = useNavigate();
 
-    function changeAuthType(type: AuthenticationType) {
-        setAuthenticationType(type);
-        navigate(authTypePaths[type])
-    }
-
     return (
-       <div className='flex flex-nowrap items-strech h-screen bg-zinc-100'>
-            <div className='basis-3/5 flex items-center justify-center px-10 space-x-10 border-2 rounded-lg border-slate-800 select-none'> 
-                <img src={logo} className='max-w-sm' />
-                
-                <div className='relative space-y-2 drop-shadow-md'>
-                    <MusicMateLogo size="lg" /> 
-                    <h2 className='ml-6 text-2xl font-medium'> Your personal music companion </h2>
+        <div className="flex flex-nowrap items-strech h-screen bg-zinc-100">
+            <div className="basis-3/5 flex items-center justify-center px-10 space-x-10 border-2 rounded-lg border-slate-800 select-none">
+                <img src={logo} className="max-w-sm" />
+
+                <div className="relative space-y-2 drop-shadow-md">
+                    <MusicMateLogo size="lg" />
+                    <h2 className="ml-6 text-2xl font-medium"> Your personal music companion </h2>
                 </div>
             </div>
 
-            <div className='basis-2/5 flex items-center justify-center bg-slate-700 border-t-2 border-r-2 border-b-2 rounded-lg border-slate-800'> 
-                <div className='flex flex-col items-center space-y-3'>
-                    <h1 className='ml-2 text-center text-4xl font-medium text-zinc-100 drop-shadow-xl outline-4 outline-black'>
-                         Authenticate 
+            <div className="basis-2/5 flex items-center justify-center bg-slate-700 border-t-2 border-r-2 border-b-2 rounded-lg border-slate-800">
+                <div className="flex flex-col items-center space-y-3">
+                    <h1 className="ml-2 text-center text-4xl font-medium text-zinc-100 drop-shadow-xl outline-4 outline-black">
+                        Authenticate
                     </h1>
 
-                    <ToggleGroup
-                        items={authTypeItems}
-                        selectedItemId={selectedAuthType}
-                        onChange={changeAuthType} />
+                    <Tabs
+                        onSelectionChange={(selection) => {
+                            if (selection === 'sign-in') {
+                                navigate('/auth/sign-in');
+                            } else if (selection === 'sign-up') {
+                                navigate('/auth/sign-up');
+                            }
+                        }}
+                    >
+                        <Tab key="sign-in" title="Sign In" />
+                        <Tab key="sign-up" title="Sign up" />
+                    </Tabs>
 
-                    <Outlet/>
+                    <Outlet />
                 </div>
             </div>
-       </div>
-    )
+        </div>
+    );
 }

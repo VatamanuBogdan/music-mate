@@ -54,7 +54,7 @@ export default function TrackListHeader({
                         className="w-96"
                         value={trackUrl}
                         onValueChange={setTrackUrl}
-                        placeholder="Youtube/Spotify URL"
+                        label="Youtube/Spotify URL"
                         size="md"
                         type="url"
                     />

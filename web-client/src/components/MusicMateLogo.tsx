@@ -1,5 +1,4 @@
-
-type MusicMateLogoSize = 'sm' | 'md' | 'lg'
+type MusicMateLogoSize = 'sm' | 'md' | 'lg';
 
 interface MusicMateLogoProps {
     size: MusicMateLogoSize;
@@ -17,13 +16,15 @@ function getClassesBySize(size: MusicMateLogoSize): string {
     }
 }
 
-export default function MusicMateLogo({ size, theme }: MusicMateLogoProps) {
-    const textColor = theme === 'dark' ? 'text-slate-100' : 'text-slate-800' ;
+export default function MusicMateLogo({ size, theme }: MusicMateLogoProps): JSX.Element {
+    const textColor = theme === 'dark' ? 'text-slate-100' : 'text-slate-800';
     const borderColor = theme === 'dark' ? 'border-slate-100' : 'border-slate-800';
 
     return (
-        <h1 className={`${textColor} ${getClassesBySize(size)} font-bold ${borderColor} rounded-md select-none`}> 
+        <h1
+            className={`${textColor} ${getClassesBySize(size)} font-bold ${borderColor} rounded-md select-none`}
+        >
             Music Mate
-        </h1> 
-    )
+        </h1>
+    );
 }

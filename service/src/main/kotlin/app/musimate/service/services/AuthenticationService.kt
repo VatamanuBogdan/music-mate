@@ -49,22 +49,13 @@ class AuthenticationService(
 
         if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
             logger.info("Logged in ${user.email} with success")
-
-            val refreshToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.REFRESH)
-            val accessToken = jwtTokenService.generateTokenForUser(entity.email, JwtTokenType.ACCESS)
-
-            val authenticationDto = AuthenticationDto(
-                infos = AccountInfosDto(entity),
-                token = accessToken
-            )
-
-            return Pair(refreshToken, authenticationDto)
+            return generateAuthenticationData(entity);
         } else {
             throw InvalidCredentialsException()
         }
     }
 
-    fun signUp(user: UserRegisterDto) {
+    fun signUp(user: UserRegisterDto): Pair<JwtToken, AuthenticationDto> {
 
         if (userRepository.existsByEmail(user.email)) {
             logger.info("Failed to register ${user.email} because the email is already used")
@@ -75,8 +66,10 @@ class AuthenticationService(
         try {
             entity = userRepository.save(entity)
             logger.info("Registered successfully ${entity.email} user")
+            return generateAuthenticationData(entity)
         } catch(ex: Exception) {
             logger.error("Failed to register ${entity.email} user")
+            throw ex
         }
     }
 
@@ -94,5 +87,17 @@ class AuthenticationService(
 
         logger.info("Generating new access token for $userEmail user")
         return jwtTokenService.generateTokenForUser(userEmail, JwtTokenType.ACCESS)
+    }
+
+    private fun generateAuthenticationData(user: User): Pair<JwtToken, AuthenticationDto> {
+        val refreshToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.REFRESH)
+        val accessToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.ACCESS)
+
+        val authenticationDto = AuthenticationDto(
+            infos = AccountInfosDto(user),
+            token = accessToken
+        )
+
+        return Pair(refreshToken, authenticationDto)
     }
 }

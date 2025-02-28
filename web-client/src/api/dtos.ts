@@ -3,6 +3,14 @@ export interface CredentialsDto {
     password: string;
 }
 
+export interface SignUpDataDto {
+    firstName: string;
+    secondName: string;
+    password: string;
+    email: string;
+    birthDate: string;
+}
+
 export type AuthTokenType = 'ACCESS' | 'REFRESH';
 
 export interface AuthTokenDto {

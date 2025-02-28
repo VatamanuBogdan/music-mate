@@ -34,8 +34,14 @@ class AuthenticationController(
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    fun signUp(@Valid @RequestBody body: UserRegisterDto) {
-        authService.signUp(body)
+    fun signUp(@Valid @RequestBody body: UserRegisterDto,
+               response: HttpServletResponse): AuthenticationDto {
+        val (refreshToken, authentication) = authService.signUp(body)
+
+        val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
+        response.addCookie(refreshTokenCookie)
+
+        return authentication;
     }
 
     @PostMapping("/signout")
