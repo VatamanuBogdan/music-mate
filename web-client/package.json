@@ -13,7 +13,7 @@
     "@heroui/react": "^2.6.14",
     "@tanstack/react-query": "^5.66.0",
     "@youtube-player/api": "0.1.0",
-    "@youtube-player/react": "^0.1.1",
+    "@youtube-player/react": "0.2.0",
     "axios": "^1.7.9",
     "framer-motion": "^12.0.0",
     "react": "^18.3.1",
