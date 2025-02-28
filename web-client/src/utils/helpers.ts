@@ -43,7 +43,7 @@ export function transformSeconds(duration: number): Duration {
 
     const seconds = duration % 60;
     const minutes = Math.floor(duration / 60) % 60;
-    const hours = Math.floor(minutes / 60);
+    const hours = Math.floor(Math.floor(duration / 60) / 60);
 
     return { hours, minutes, seconds };
 }

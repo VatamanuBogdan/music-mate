@@ -17,6 +17,7 @@ export default function useAddTrack(playlistId?: number): (url: string) => void 
             }
         },
         onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['playlist'] });
             queryClient.invalidateQueries({ queryKey: ['playlist-tracks', playlistId] });
         },
     });

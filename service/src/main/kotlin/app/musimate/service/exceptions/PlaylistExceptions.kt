@@ -8,6 +8,11 @@ class InvalidPlaylistIdException: ApiException(
     message = "Invalid playlists id"
 )
 
+class InvalidTrackIdException: ApiException(
+    errorCode = ApiErrorCode.INVALID_ID,
+    message = "Invalid track id"
+)
+
 class SpotifyOperationNotImplementedException: ApiException(
     statusCode = HttpStatus.INTERNAL_SERVER_ERROR,
     errorCode = ApiErrorCode.NOT_IMPLEMENTED,

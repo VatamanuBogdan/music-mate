@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param
 
 interface TrackRepository: JpaRepository<Track, Int> {
     fun findTrackBySource(source: TrackSource): Track?
+    fun findTrackById(id: Int): Track?
 
     @Query("SELECT t FROM Track t JOIN t.playlists p WHERE p.id.playlistId = :playlistId ORDER BY p.index")
     fun findPlaylistTracks(@Param("playlistId") playlistId: Int, pageable: Pageable): Page<Track>

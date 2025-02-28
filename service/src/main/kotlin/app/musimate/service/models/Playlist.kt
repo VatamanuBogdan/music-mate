@@ -29,7 +29,7 @@ class Playlist(
     @Column(name = "track_count", nullable = false)
     var trackCount: Int = 0,
 
-    @Column(name = "total_duration")
+    @Column(name = "total_duration", nullable = false)
     var totalDurationSec: Long = 0,
 
 

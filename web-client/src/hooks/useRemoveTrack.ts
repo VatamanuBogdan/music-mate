@@ -12,6 +12,7 @@ export default function useRemoveTrack(playlistId?: number): (trackId: number) =
             return PlaylistApi.removePlaylistTrack(playlistId, trackId);
         },
         onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ['playlist'] });
             queryClient.invalidateQueries({ queryKey: ['playlist-tracks', playlistId] });
         },
     });

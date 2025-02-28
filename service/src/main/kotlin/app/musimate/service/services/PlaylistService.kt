@@ -5,6 +5,7 @@ import app.musimate.service.dtos.PaginationQuery
 import app.musimate.service.dtos.playlist.*
 import app.musimate.service.exceptions.ApiException
 import app.musimate.service.exceptions.InvalidPlaylistIdException
+import app.musimate.service.exceptions.InvalidTrackIdException
 import app.musimate.service.exceptions.SpotifyOperationNotImplementedException
 import app.musimate.service.models.*
 import app.musimate.service.repositories.PlaylistRepository
@@ -109,16 +110,22 @@ class PlaylistService(
             playlistId = playlist.id!!,
             trackId = track.id!!
         )
+
+        playlist.trackCount++
+        playlist.totalDurationSec += track.durationSec
         return createTrackDto(track)
     }
 
     @Transactional
     fun removeTrackFromPlaylist(playlistId: Int, trackId: Int) {
-        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authUser)) {
-            throw InvalidPlaylistIdException()
-        }
+        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authUser)
+            ?: throw InvalidPlaylistIdException()
+        val track = trackRepository.findTrackById(trackId)
+            ?: throw InvalidTrackIdException()
 
         playlistTrackRepository.removeTrackFromPlaylist(playlistId, trackId)
+        playlist.trackCount--
+        playlist.totalDurationSec -= track.durationSec
     }
 
     @Transactional
