@@ -4,22 +4,22 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: ${POSTGRES_DATASOURCE_URL}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
+    url: 'jdbc:postgresql://${POSTGRES_HOSTNAME}:${POSTGRES_PORT}/${POSTGRES_DB}'
+    username: '${POSTGRES_USER}'
+    password: '${POSTGRES_PASSWORD}'
     driver-class-name: org.postgresql.Driver
 server:
   error:
     include-message: always
 minio:
-  url: ${MINIO_URL}
+  url: 'http://${MINIO_HOSTNAME}:${MINIO_PORT}'
   access:
-    username: ${MINIO_USERNAME}
+    username: ${MINIO_USER}
     password: ${MINIO_PASSWORD}
 youtube-data:
   api-key: ${YOUTUBE_DATA_API_KEY}
 auth:
   token:
-    secret: ${JWT_SECRET}
+    secret: ${SERVICE_JWT_SECRET}
     refresh-duration-seconds: 86400
     access-duration-seconds: 900

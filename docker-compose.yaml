@@ -1,15 +1,43 @@
-version: '3'
 services:
+  service:
+    build: service/
+    ports:
+      - '8080:8080'
+    environment:
+      POSTGRES_HOSTNAME: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      MINIO_HOSTNAME: minio
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_USER: ${MINIO_USER}
+      MINIO_PASSWORD: ${MINIO_PASSWORD}
+      YOUTUBE_DATA_API_KEY: ${YOUTUBE_DATA_API_KEY}
+      SERVICE_JWT_SECRET: ${SERVICE_JWT_SECRET}
+    depends_on:
+      - postgres
+      - minio
+  postgres:
+    image: postgres:17
+    ports: 
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - ${POSTGRES_VOLUME_PATH}:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
     volumes:
-      - ${DATA_DIRECTORY_PATH}:/data
+      - ${MINIO_VOLUME_PATH}:/data
     ports:
-      - 9000:9000
-      - 9001:9001
+      - ${MINIO_PORT}:9000
+      - ${MINIO_CLIENT_PORT}:9001
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
       MINIO_ADDRESS: ':9000'
       MINIO_CONSOLE_ADDRESS: ':9001'
     command: minio server /data
