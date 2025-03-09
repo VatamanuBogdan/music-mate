@@ -1,11 +1,10 @@
 package app.musimate.service.utils
 
-
-enum class JwtTokenType {
+enum class AuthTokenType {
     ACCESS, REFRESH
 }
 
-data class JwtToken(
-    val type: JwtTokenType,
+data class AuthToken(
+    val type: AuthTokenType,
     val value: String
 )

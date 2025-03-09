@@ -2,7 +2,7 @@ package app.musimate.service.config
 
 import app.musimate.service.services.JwtTokenService
 import app.musimate.service.utils.Constants
-import app.musimate.service.utils.JwtTokenType
+import app.musimate.service.utils.AuthTokenType
 import app.musimate.service.utils.Utils
 import app.musimate.service.utils.extractValuePrefixedByFromHttpHeader
 import jakarta.servlet.FilterChain
@@ -29,7 +29,7 @@ class JwtAuthenticationFilter(
     ) {
 
         val jwtToken = extractJwtTokenFrom(request)
-        if (jwtToken == null || !jwtTokenService.isTokenValid(jwtToken, JwtTokenType.ACCESS)) {
+        if (jwtToken == null || !jwtTokenService.isValidAuthToken(jwtToken, AuthTokenType.ACCESS)) {
             return filterChain.doFilter(request, response)
         }
 

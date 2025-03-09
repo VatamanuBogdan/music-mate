@@ -1,8 +1,8 @@
 package app.musimate.service.services
 
-import app.musimate.service.models.User
 import app.musimate.service.utils.*
 import io.jsonwebtoken.Claims
+import io.jsonwebtoken.JwtBuilder
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -22,6 +22,9 @@ class JwtTokenService {
     @Value("\${auth.token.refresh-duration-seconds}")
     private val refreshTokenDurationSeconds: Double = 0.0
 
+    @Value("\${auth.token.state-duration-seconds}")
+    private val stateTokenDurationSeconds: Double = 0.0
+
     @Value("\${auth.token.secret}")
     private lateinit var secret: String
 
@@ -31,40 +34,52 @@ class JwtTokenService {
     val refreshTokenDuration: Duration
         get() = refreshTokenDurationSeconds.seconds
 
-    fun generateTokenForUser(email: String, type: JwtTokenType): JwtToken {
+    val stateTokenDuration: Duration
+        get() = stateTokenDurationSeconds.seconds
+    
+    fun generateAuthTokenForUser(email: String, type: AuthTokenType): AuthToken {
 
-        val tokenTypeClaimValue = getTokenTypeClaimValue(type)
+        val tokenTypeClaimValue = getAuthTokenTypeClaimValue(type)
         val tokenDuration = when (type) {
-            JwtTokenType.ACCESS -> accessTokenDuration
-            JwtTokenType.REFRESH -> refreshTokenDuration
+            AuthTokenType.ACCESS -> accessTokenDuration
+            AuthTokenType.REFRESH -> refreshTokenDuration
         }
 
-        val value = Jwts.builder()
-            .subject(email)
-            .issuedAt(Utils.currentDate())
-            .claim(TOKEN_TYPE_CLAIM_KEY, tokenTypeClaimValue)
-            .expiration(Utils.currentDateAfter(tokenDuration))
+        val value = createExpirableToken(email, tokenDuration)
+            .claim(AUTH_TOKEN_TYPE_CLAIM_KEY, tokenTypeClaimValue)
             .signWith(secretKey, SIGNING_ALGORITHM)
             .compact()
 
-        return JwtToken(type, value)
+        return AuthToken(type, value)
+    }
+    
+    fun generateOAuthStateToken(email: String): String {
+        return createExpirableToken(email, stateTokenDuration)
+            .claim(OAUTH_STATE_TOKEN_CLAIM_KEY, Utils.generateRandomString(OAUTH_STATE_TOKEN_VALUE_LENGTH))
+            .signWith(secretKey, SIGNING_ALGORITHM)
+            .compact()
     }
 
-    fun isTokenValid(token: JwtToken) = isTokenValid(token.value, token.type)
+    fun isValidAuthToken(token: AuthToken) = isValidAuthToken(token.value, token.type)
 
-    fun isTokenValid(token: String, type: JwtTokenType): Boolean {
+    fun isValidAuthToken(token: String, type: AuthTokenType): Boolean {
 
         val claims = extractAllClaims(token)
 
-        val typeClaim = claims?.get(TOKEN_TYPE_CLAIM_KEY)
+        val typeClaim = claims?.get(AUTH_TOKEN_TYPE_CLAIM_KEY)
         val expirationClaim = claims?.expiration
 
         if (typeClaim == null || expirationClaim == null) {
             return false
         }
 
-        return getTokenTypeClaimValue(type) == typeClaim
+        return getAuthTokenTypeClaimValue(type) == typeClaim
                 && expirationClaim.after(Utils.currentDate())
+    }
+
+    fun isValidOAuthToken(token: String): Boolean {
+        val claims = extractAllClaims(token)
+        return claims?.get(OAUTH_STATE_TOKEN_CLAIM_KEY) != null
     }
 
     fun extractEmail(token: String): String? {
@@ -89,10 +104,17 @@ class JwtTokenService {
             null
         }
     }
+    
+    private fun createExpirableToken(email: String, duration: Duration): JwtBuilder {
+        return Jwts.builder()
+            .subject(email)
+            .issuedAt(Utils.currentDate())
+            .expiration(Utils.currentDateAfter(duration))
+    }
 
-    private fun getTokenTypeClaimValue(type: JwtTokenType) = when(type) {
-        JwtTokenType.ACCESS -> ACCESS_TOKEN_CLAIM_VALUE
-        JwtTokenType.REFRESH -> REFRESH_TOKEN_CLAIM_VALUE
+    private fun getAuthTokenTypeClaimValue(type: AuthTokenType) = when(type) {
+        AuthTokenType.ACCESS -> ACCESS_TOKEN_CLAIM_VALUE
+        AuthTokenType.REFRESH -> REFRESH_TOKEN_CLAIM_VALUE
     }
 
     private val secretKey: SecretKey by lazy {
@@ -103,8 +125,10 @@ class JwtTokenService {
     private companion object {
         val SIGNING_ALGORITHM: MacAlgorithm = Jwts.SIG.HS256
 
-        const val TOKEN_TYPE_CLAIM_KEY = "type";
+        const val AUTH_TOKEN_TYPE_CLAIM_KEY = "type"
         const val ACCESS_TOKEN_CLAIM_VALUE = "access"
         const val REFRESH_TOKEN_CLAIM_VALUE = "refresh"
+        const val OAUTH_STATE_TOKEN_CLAIM_KEY = "value"
+        const val OAUTH_STATE_TOKEN_VALUE_LENGTH = 16
     }
 }

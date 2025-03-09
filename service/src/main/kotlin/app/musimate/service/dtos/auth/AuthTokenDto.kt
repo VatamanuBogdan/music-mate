@@ -1,5 +1,5 @@
 package app.musimate.service.dtos.auth
 
-import app.musimate.service.utils.JwtToken
+import app.musimate.service.utils.AuthToken
 
-typealias AuthTokenDto = JwtToken
+typealias AuthTokenDto = AuthToken

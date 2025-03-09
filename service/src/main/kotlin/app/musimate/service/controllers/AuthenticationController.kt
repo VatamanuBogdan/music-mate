@@ -5,6 +5,8 @@ import app.musimate.service.dtos.ApiSuccessResponse
 import app.musimate.service.dtos.auth.*
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.JwtTokenService
+import app.musimate.service.services.SpotifyService
+import app.musimate.service.utils.AuthToken
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/auth/")
 class AuthenticationController(
     private val authService: AuthenticationService,
+    private val spotifyService: SpotifyService,
     private val jwtTokenService: JwtTokenService,
     private val securityParameters: SecurityParameters
 ) {
@@ -69,6 +72,26 @@ class AuthenticationController(
         return authService.currentAccountInfos
     }
 
+    @GetMapping("/spotify")
+    fun authorizeSpotify(response: HttpServletResponse) {
+
+        response.sendRedirect(spotifyService.createAuthorizationUri(SPOTIFY_REDIRECT_URL))
+    }
+
+    @GetMapping("/spotify/callback")
+    fun spotifyAuthorizeCallback(
+        @RequestParam("state") state: String,
+        @RequestParam("code", required = false) code: String?,
+        @RequestParam("error", required = false) error: String?,
+    ): AuthTokenDto {
+        return spotifyService.syncAuthorization(state, code, error, SPOTIFY_REDIRECT_URL)
+    }
+
+    @GetMapping("/spotify/refresh")
+    fun refreshSpotifyAccessToken(): AuthToken {
+        return spotifyService.refreshAccessToken()
+    }
+
     private fun createCookieForRefreshToken(token: String): Cookie {
 
         return Cookie(REFRESH_TOKEN_COOKIE, token).apply {
@@ -89,6 +112,7 @@ class AuthenticationController(
     }
 
     private companion object {
-        const val REFRESH_TOKEN_COOKIE="refresh-token"
+        const val REFRESH_TOKEN_COOKIE = "refresh-token"
+        const val SPOTIFY_REDIRECT_URL = "http://localhost:8080/api/auth/spotify/callback"
     }
 }

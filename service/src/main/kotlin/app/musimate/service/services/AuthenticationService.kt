@@ -1,31 +1,30 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.auth.AccountInfosDto
-import app.musimate.service.dtos.auth.AuthenticationDto
-import app.musimate.service.dtos.auth.CredentialsDto
-import app.musimate.service.dtos.auth.UserRegisterDto
-import app.musimate.service.exceptions.InvalidCredentialsException
-import app.musimate.service.exceptions.InvalidRefreshToken
-import app.musimate.service.exceptions.InvalidUserException
-import app.musimate.service.exceptions.UserAlreadyRegisteredException
+import app.musimate.service.dtos.auth.*
+import app.musimate.service.exceptions.*
 import app.musimate.service.models.User
+import app.musimate.service.models.ThirdPartySecrets
+import app.musimate.service.repositories.ThirdPartySecretsRepository
 import app.musimate.service.repositories.UserRepository
-import app.musimate.service.utils.JwtToken
-import app.musimate.service.utils.JwtTokenType
+import app.musimate.service.utils.AuthToken
+import app.musimate.service.utils.AuthTokenType
 import app.musimate.service.utils.User
 import app.musimate.service.utils.UserDetailsAdapter
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 
 @Service
 class AuthenticationService(
     private val userRepository: UserRepository,
+    private val user3rdPartySecretsRepository: ThirdPartySecretsRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val jwtTokenService: JwtTokenService
+    private val jwtTokenService: JwtTokenService,
 ) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -35,14 +34,14 @@ class AuthenticationService(
             val authentication = SecurityContextHolder.getContext().authentication
 
             val principal = authentication.principal as? UserDetailsAdapter
-                ?: throw RuntimeException("Unauthenticated user")
+                ?: throw UnauthenticatedUser()
             return principal.user
         }
 
     val currentAccountInfos: AccountInfosDto
         get() { return AccountInfosDto(authenticatedUser) }
 
-    fun signIn(user: CredentialsDto): Pair<JwtToken, AuthenticationDto> {
+    fun signIn(user: CredentialsDto): Pair<AuthToken, AuthenticationDto> {
 
         val entity = userRepository.findUserByEmail(user.email)
             ?: throw InvalidUserException()
@@ -55,43 +54,46 @@ class AuthenticationService(
         }
     }
 
-    fun signUp(user: UserRegisterDto): Pair<JwtToken, AuthenticationDto> {
+    @Transactional
+    fun signUp(user: UserRegisterDto): Pair<AuthToken, AuthenticationDto> {
 
-        if (userRepository.existsByEmail(user.email)) {
-            logger.info("Failed to register ${user.email} because the email is already used")
-            throw UserAlreadyRegisteredException()
-        }
-
-        var entity = User(user, passwordEncoder)
         try {
+            var entity = User(user, passwordEncoder)
+            val secrets = ThirdPartySecrets(entity.id, entity)
+
             entity = userRepository.save(entity)
+            user3rdPartySecretsRepository.save(secrets)
+
             logger.info("Registered successfully ${entity.email} user")
             return generateAuthenticationData(entity)
+        } catch (ex: DataIntegrityViolationException) {
+            logger.info("Failed to register ${user.email} because the email is probably already used $ex")
+            throw UserAlreadyRegisteredException()
         } catch(ex: Exception) {
-            logger.error("Failed to register ${entity.email} user")
+            logger.error("Failed to register ${user.email} user")
             throw ex
         }
     }
 
-    fun refreshAccessToken(refreshToken: String): JwtToken {
+    fun refreshAccessToken(refreshToken: String): AuthToken {
 
         if (refreshToken.isEmpty()) {
             throw InvalidRefreshToken()
         }
 
-        if (!jwtTokenService.isTokenValid(refreshToken, type = JwtTokenType.REFRESH)) {
+        if (!jwtTokenService.isValidAuthToken(refreshToken, type = AuthTokenType.REFRESH)) {
             throw InvalidRefreshToken()
         }
 
         val userEmail = jwtTokenService.extractEmail(refreshToken) ?: throw InvalidRefreshToken()
 
         logger.info("Generating new access token for $userEmail user")
-        return jwtTokenService.generateTokenForUser(userEmail, JwtTokenType.ACCESS)
+        return jwtTokenService.generateAuthTokenForUser(userEmail, AuthTokenType.ACCESS)
     }
 
-    private fun generateAuthenticationData(user: User): Pair<JwtToken, AuthenticationDto> {
-        val refreshToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.REFRESH)
-        val accessToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.ACCESS)
+    private fun generateAuthenticationData(user: User): Pair<AuthToken, AuthenticationDto> {
+        val refreshToken = jwtTokenService.generateAuthTokenForUser(user.email, AuthTokenType.REFRESH)
+        val accessToken = jwtTokenService.generateAuthTokenForUser(user.email, AuthTokenType.ACCESS)
 
         val authenticationDto = AuthenticationDto(
             infos = AccountInfosDto(user),
