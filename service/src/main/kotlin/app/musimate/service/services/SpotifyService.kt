@@ -5,11 +5,12 @@ import app.musimate.service.dtos.auth.SpotifyAuthorizationDto
 import app.musimate.service.exceptions.InvalidSpotifyStateToken
 import app.musimate.service.exceptions.SpotifyAuthorizationFailed
 import app.musimate.service.exceptions.SpotifyInternalError
+import app.musimate.service.models.SpotifySecrets
 import app.musimate.service.models.ThirdPartySecrets
+import app.musimate.service.models.User
 import app.musimate.service.repositories.ThirdPartySecretsRepository
-import app.musimate.service.utils.AuthToken
 import app.musimate.service.utils.AuthTokenType
-import org.slf4j.LoggerFactory
+import app.musimate.service.utils.isExpired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -26,30 +27,27 @@ import java.util.*
 
 @Service
 class SpotifyService(
-    private val thirdPartySecretsRepository: ThirdPartySecretsRepository,
     private val jwtTokenService: JwtTokenService,
-    private val authService: AuthenticationService
-) {
+    private val thirdPartySecretsRepository: ThirdPartySecretsRepository,
+): ServiceBase() {
+
     @Value("\${spotify-api.client_id}")
     private lateinit var _spotifyClientId: String
 
     @Value("\${spotify-api.client_secret}")
     private lateinit var _spotifyClientSecret: String
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     val spotifyClientId: String
         get() = _spotifyClientId
     val spotifyClientSecret: String
         get() = _spotifyClientSecret
 
-    fun createAuthorizationFlowState(): String {
-        val user = authService.authenticatedUser
+    fun createAuthorizationFlowState(user: User): String {
         return jwtTokenService.generateOAuthStateToken(user.email)
     }
 
-    fun createAuthorizationUri(redirectionUri: String): String {
-        val state = createAuthorizationFlowState()
+    fun createAuthorizationUri(user: User, redirectionUri: String): String {
+        val state = createAuthorizationFlowState(user)
 
         return UriComponentsBuilder.fromHttpUrl(SpotifyApiConstants.AUTHORIZE_URL)
             .queryParam(SpotifyApiConstants.RESPONSE_TYPE_KEY, SpotifyApiConstants.CODE_KEY)
@@ -91,9 +89,37 @@ class SpotifyService(
     }
 
     @Transactional
-    fun refreshAccessToken(): AuthTokenDto {
+    fun fetchAccessToken(user: User): String? {
+        val secrets = thirdPartySecretsRepository.findSecretsForUser(user)
 
-        val secrets = thirdPartySecretsRepository.findSecretsForUser(authService.authenticatedUser)
+        if (secrets == null) {
+            logger.error("Cannot find secrets for user with ${user.id} id, the secret value" +
+                    "should not be null for every user")
+            return null
+        }
+
+        val spotifySecrets = secrets.spotifySecrets
+
+        if (spotifySecrets?.refreshToken == null) {
+            return null
+        }
+
+        val accessToken = spotifySecrets.accessToken
+        if (accessToken != null && spotifySecrets.accessTokenExpiration?.isExpired() == false) {
+            return accessToken
+        }
+
+        return try {
+            refreshAccessToken(user)
+        } catch(ex: Exception) {
+            null
+        }
+    }
+
+    @Transactional
+    fun refreshAccessToken(user: User): String {
+
+        val secrets = thirdPartySecretsRepository.findSecretsForUser(user)
         val refreshToken = secrets?.spotifySecrets?.refreshToken
 
         if (secrets == null || refreshToken == null) {
@@ -113,7 +139,7 @@ class SpotifyService(
 
         updateSpotifySecrets(secrets, spotifyTokens)
 
-        return AuthToken(AuthTokenType.ACCESS, spotifyTokens.accessToken)
+        return spotifyTokens.accessToken
     }
 
     private fun fetchAuthTokens(code: String, redirectUri: String): SpotifyAuthorizationDto? {
@@ -140,7 +166,11 @@ class SpotifyService(
                 LocalDateTime.ofInstant(it, ZoneId.systemDefault())
             }
 
-        secrets.spotifySecrets.apply {
+        if (secrets.spotifySecrets == null) {
+            secrets.spotifySecrets = SpotifySecrets()
+        }
+
+        secrets.spotifySecrets!!.apply {
             accessToken = authorizationDto.accessToken
             accessTokenExpiration = expiration
             if (authorizationDto.refreshToken != null) {

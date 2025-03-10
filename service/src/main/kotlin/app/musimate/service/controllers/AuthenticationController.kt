@@ -7,6 +7,8 @@ import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.JwtTokenService
 import app.musimate.service.services.SpotifyService
 import app.musimate.service.utils.AuthToken
+import app.musimate.service.utils.AuthTokenType
+import app.musimate.service.utils.AuthenticationContext
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -27,24 +29,28 @@ class AuthenticationController(
     fun signIn(@Valid @RequestBody body: CredentialsDto,
                response: HttpServletResponse
     ): AuthenticationDto {
-        val (refreshToken, authentication) = authService.signIn(body)
+        val authenticationData = authService.signIn(body)
+        setupRefreshTokenCookie(response, authenticationData.refreshToken)
 
-        val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
-        response.addCookie(refreshTokenCookie)
-
-        return authentication
+        return AuthenticationDto(
+            token = AuthToken(AuthTokenType.ACCESS, authenticationData.accessToken),
+            spotifyAccessToken = authenticationData.spotifyAccessToken,
+            infos = authenticationData.accountInfos
+        )
     }
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     fun signUp(@Valid @RequestBody body: UserRegisterDto,
                response: HttpServletResponse): AuthenticationDto {
-        val (refreshToken, authentication) = authService.signUp(body)
+        val authenticationData = authService.signUp(body)
+        setupRefreshTokenCookie(response, authenticationData.refreshToken)
 
-        val refreshTokenCookie = createCookieForRefreshToken(refreshToken.value)
-        response.addCookie(refreshTokenCookie)
-
-        return authentication;
+        return AuthenticationDto(
+            token = AuthToken(AuthTokenType.ACCESS, authenticationData.accessToken),
+            spotifyAccessToken = authenticationData.spotifyAccessToken,
+            infos = authenticationData.accountInfos
+        )
     }
 
     @PostMapping("/signout")
@@ -75,7 +81,11 @@ class AuthenticationController(
     @GetMapping("/spotify")
     fun authorizeSpotify(response: HttpServletResponse) {
 
-        response.sendRedirect(spotifyService.createAuthorizationUri(SPOTIFY_REDIRECT_URL))
+        val authorizationUri = spotifyService.createAuthorizationUri(
+            AuthenticationContext.user,
+            SPOTIFY_REDIRECT_URL
+        )
+        response.sendRedirect(authorizationUri)
     }
 
     @GetMapping("/spotify/callback")
@@ -87,9 +97,18 @@ class AuthenticationController(
         return spotifyService.syncAuthorization(state, code, error, SPOTIFY_REDIRECT_URL)
     }
 
-    @GetMapping("/spotify/refresh")
-    fun refreshSpotifyAccessToken(): AuthToken {
-        return spotifyService.refreshAccessToken()
+    @GetMapping("/spotify/access")
+    fun fetchSpotifyAccessToken(): AuthToken? {
+        val accessToken = spotifyService.fetchAccessToken(AuthenticationContext.user)
+            ?: return null
+
+        return AuthToken(AuthTokenType.ACCESS, accessToken)
+    }
+
+    private fun setupRefreshTokenCookie(response: HttpServletResponse, refreshToken: String) {
+
+        val refreshTokenCookie = createCookieForRefreshToken(refreshToken)
+        response.addCookie(refreshTokenCookie)
     }
 
     private fun createCookieForRefreshToken(token: String): Cookie {
@@ -103,6 +122,7 @@ class AuthenticationController(
     }
 
     private fun createCookieForRefreshTokenRemoval(): Cookie {
+
         return Cookie(REFRESH_TOKEN_COOKIE, null).apply {
             isHttpOnly = true
             secure = securityParameters.secureHttpCookies

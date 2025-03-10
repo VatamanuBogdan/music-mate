@@ -6,6 +6,8 @@ import app.musimate.service.dtos.playlist.*
 import app.musimate.service.models.User
 import app.musimate.service.services.AuthenticationService
 import app.musimate.service.services.PlaylistService
+import app.musimate.service.services.ServiceBase
+import app.musimate.service.utils.AuthenticationContext
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -24,23 +26,19 @@ import java.io.InputStream
 @RestController
 @RequestMapping("/api/playlists")
 class PlaylistController(
-    private val authService: AuthenticationService,
     private val playlistService: PlaylistService
 ) {
-
-    private val authenticatedUser: User
-        get() = authService.authenticatedUser
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun createPlaylist(@RequestBody body: PlaylistCreationDto): PlaylistDto {
-        return playlistService.createPlaylist(authenticatedUser, body)
+        return playlistService.createPlaylist(AuthenticationContext.user, body)
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     fun fetchPlaylists(pageQuery: PaginationQuery): PaginatedResponse<PlaylistDto> {
-        val page = playlistService.fetchPlaylists(authenticatedUser, pageQuery)
+        val page = playlistService.fetchPlaylists(AuthenticationContext.user, pageQuery)
         return PaginatedResponse(page)
     }
 

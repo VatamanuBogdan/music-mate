@@ -34,5 +34,5 @@ class ThirdPartySecrets(
     var user: User?,
 
     @Embedded
-    var spotifySecrets: SpotifySecrets = SpotifySecrets()
+    var spotifySecrets: SpotifySecrets? = null
 )

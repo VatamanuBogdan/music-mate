@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Direction
 import java.security.SecureRandom
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration
 
@@ -65,4 +66,8 @@ fun Utils.generateRandomString(length: Int): String {
 
 fun Utils.toPageable(pageQuery: PaginationQuery): Pageable {
     return PageRequest.of(pageQuery.page, pageQuery.size)
+}
+
+fun LocalDateTime.isExpired(): Boolean {
+    return this.isBefore(LocalDateTime.now())
 }
