@@ -19,12 +19,12 @@ def perform_request(method: str, endpoint: str, auth: bool = True, **kwargs) -> 
 
 
 def print_request_result(method: str, endpoint: str, auth: bool = True, **kwargs) -> Optional[Response]:
+    global response
     try:
         response = perform_request(method, endpoint, auth, **kwargs)
         if response.ok:
             if response.content:
                 print_json_body(response)
-            return response
         else:
             body = response.text
             if body is not None and body != '':
@@ -33,7 +33,8 @@ def print_request_result(method: str, endpoint: str, auth: bool = True, **kwargs
                 print(f'Request failed with status {response.status_code}')
     except Exception as e:
         print(f'Error occurred on request {e}')
-    return None
+    finally:
+        return response
 
 
 def print_json_body(response: Response):

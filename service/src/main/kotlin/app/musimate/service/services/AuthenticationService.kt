@@ -1,103 +1,113 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.auth.AccountInfosDto
-import app.musimate.service.dtos.auth.AuthenticationDto
-import app.musimate.service.dtos.auth.CredentialsDto
-import app.musimate.service.dtos.auth.UserRegisterDto
-import app.musimate.service.exceptions.InvalidCredentialsException
-import app.musimate.service.exceptions.InvalidRefreshToken
-import app.musimate.service.exceptions.InvalidUserException
-import app.musimate.service.exceptions.UserAlreadyRegisteredException
+import app.musimate.service.dtos.auth.*
+import app.musimate.service.exceptions.*
 import app.musimate.service.models.User
+import app.musimate.service.models.ThirdPartySecrets
+import app.musimate.service.repositories.ThirdPartySecretsRepository
 import app.musimate.service.repositories.UserRepository
-import app.musimate.service.utils.JwtToken
-import app.musimate.service.utils.JwtTokenType
+import app.musimate.service.utils.*
 import app.musimate.service.utils.User
-import app.musimate.service.utils.UserDetailsAdapter
-import org.slf4j.LoggerFactory
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 
 @Service
 class AuthenticationService(
+    private val spotifyService: SpotifyService,
+    private val jwtTokenService: JwtTokenService,
     private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder,
-    private val jwtTokenService: JwtTokenService
-) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
-    val authenticatedUser: User
-        get() {
-            val authentication = SecurityContextHolder.getContext().authentication
-
-            val principal = authentication.principal as? UserDetailsAdapter
-                ?: throw RuntimeException("Unauthenticated user")
-            return principal.user
-        }
+    private val user3rdPartySecretsRepository: ThirdPartySecretsRepository,
+    private val passwordEncoder: PasswordEncoder
+): ServiceBase() {
 
     val currentAccountInfos: AccountInfosDto
         get() { return AccountInfosDto(authenticatedUser) }
 
-    fun signIn(user: CredentialsDto): Pair<JwtToken, AuthenticationDto> {
+    fun signIn(user: CredentialsDto): AuthenticationData {
 
         val entity = userRepository.findUserByEmail(user.email)
             ?: throw InvalidUserException()
 
-        if (BCrypt.checkpw(user.password, entity.hashedPassword)) {
-            logger.info("Logged in ${user.email} with success")
-            return generateAuthenticationData(entity);
-        } else {
+        if (!BCrypt.checkpw(user.password, entity.hashedPassword)) {
             throw InvalidCredentialsException()
         }
+
+        logger.info("Logged in ${user.email} with success")
+        val authTokens = createAuthTokens(entity)
+        val spotifyAccessToken = spotifyService.fetchAccessToken(entity)
+
+        return AuthenticationData(
+            refreshToken = authTokens.refreshToken,
+            accessToken = authTokens.accessToken,
+            spotifyAccessToken = spotifyAccessToken,
+            accountInfos = AccountInfosDto(entity)
+        )
     }
 
-    fun signUp(user: UserRegisterDto): Pair<JwtToken, AuthenticationDto> {
+    @Transactional
+    fun signUp(user: UserRegisterDto): AuthenticationData {
 
-        if (userRepository.existsByEmail(user.email)) {
-            logger.info("Failed to register ${user.email} because the email is already used")
-            throw UserAlreadyRegisteredException()
-        }
-
-        var entity = User(user, passwordEncoder)
         try {
+            var entity = User(user, passwordEncoder)
             entity = userRepository.save(entity)
+
+            val secrets = ThirdPartySecrets(entity.id, entity)
+            user3rdPartySecretsRepository.save(secrets)
+
             logger.info("Registered successfully ${entity.email} user")
-            return generateAuthenticationData(entity)
+            val authTokens = createAuthTokens(entity)
+
+            return AuthenticationData(
+                refreshToken = authTokens.refreshToken,
+                accessToken = authTokens.accessToken,
+                spotifyAccessToken = null,
+                accountInfos = AccountInfosDto(entity)
+            )
+        } catch (ex: DataIntegrityViolationException) {
+            logger.info("Failed to register ${user.email} because the email is probably already used $ex")
+            throw UserAlreadyRegisteredException()
         } catch(ex: Exception) {
-            logger.error("Failed to register ${entity.email} user")
+            logger.error("Failed to register ${user.email} user")
             throw ex
         }
     }
 
-    fun refreshAccessToken(refreshToken: String): JwtToken {
+    fun refreshAccessToken(refreshToken: String): AuthToken {
 
         if (refreshToken.isEmpty()) {
             throw InvalidRefreshToken()
         }
 
-        if (!jwtTokenService.isTokenValid(refreshToken, type = JwtTokenType.REFRESH)) {
+        if (!jwtTokenService.isValidAuthToken(refreshToken, type = AuthTokenType.REFRESH)) {
             throw InvalidRefreshToken()
         }
 
         val userEmail = jwtTokenService.extractEmail(refreshToken) ?: throw InvalidRefreshToken()
 
         logger.info("Generating new access token for $userEmail user")
-        return jwtTokenService.generateTokenForUser(userEmail, JwtTokenType.ACCESS)
+        return jwtTokenService.generateAuthTokenForUser(userEmail, AuthTokenType.ACCESS)
     }
 
-    private fun generateAuthenticationData(user: User): Pair<JwtToken, AuthenticationDto> {
-        val refreshToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.REFRESH)
-        val accessToken = jwtTokenService.generateTokenForUser(user.email, JwtTokenType.ACCESS)
+    private fun createAuthTokens(user: User) = AuthTokens(
+        accessToken = jwtTokenService.generateAuthTokenForUser(user.email, AuthTokenType.ACCESS).value,
+        refreshToken = jwtTokenService.generateAuthTokenForUser(user.email, AuthTokenType.REFRESH).value
+    )
 
-        val authenticationDto = AuthenticationDto(
-            infos = AccountInfosDto(user),
-            token = accessToken
+    companion object {
+        data class AuthTokens(
+            val accessToken: String,
+            val refreshToken: String
         )
 
-        return Pair(refreshToken, authenticationDto)
+        data class AuthenticationData(
+            val refreshToken: String,
+            val accessToken: String,
+            val spotifyAccessToken: String?,
+            val accountInfos: AccountInfosDto
+        )
     }
 }

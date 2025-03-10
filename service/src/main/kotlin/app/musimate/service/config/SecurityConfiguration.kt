@@ -71,7 +71,7 @@ class SecurityConfiguration(
     fun corsFilter(): CorsFilter {
         val config = CorsConfiguration()
         config.allowCredentials = true
-        config.addAllowedOriginPattern("*") // Use "*" to allow all origins
+        config.addAllowedOriginPattern("*")
         config.addAllowedHeader("*")
         config.addAllowedMethod("*")
 
@@ -87,6 +87,7 @@ class SecurityConfiguration(
             "/api/auth/signup",
             "/api/auth/refresh",
             "/api/auth/signout",
+            "/api/auth/spotify/callback",
             "/api/dummy/**"
         )
     }

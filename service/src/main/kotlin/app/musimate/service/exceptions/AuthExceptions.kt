@@ -26,3 +26,9 @@ class InvalidRefreshToken : ApiException(
     errorCode = ApiErrorCode.INVALID_REFRESH_TOKEN,
     message = "Refresh token is expired or invalid"
 )
+
+class UnauthenticatedUser: ApiException(
+    statusCode = HttpStatus.UNAUTHORIZED,
+    errorCode = ApiErrorCode.UNAUTHENTICATED,
+    message = "The user is not authenticated"
+)

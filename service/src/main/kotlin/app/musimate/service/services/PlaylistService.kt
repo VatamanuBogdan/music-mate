@@ -27,14 +27,9 @@ class PlaylistService(
     private val playlistRepository: PlaylistRepository,
     private val playlistTrackRepository: PlaylistTrackRepository,
     private val trackRepository: TrackRepository,
-    private val authService: AuthenticationService,
     private val youtubeService: YoutubeDataService,
     private val imageService: ImageService
-) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
-    private val authUser: User
-        get() = authService.authenticatedUser
+): ServiceBase() {
 
     fun createPlaylist(user: User, creationDto: PlaylistCreationDto): PlaylistDto {
 
@@ -57,7 +52,7 @@ class PlaylistService(
     }
 
     fun fetchThumbnail(playlistId: Int): InputStream {
-        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authService.authenticatedUser)
+        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authenticatedUser)
             ?: throw InvalidPlaylistIdException()
 
         return imageService.fetchPlaylistThumbnail(playlist)
@@ -65,7 +60,7 @@ class PlaylistService(
 
     fun updateThumbnail(playlistId: Int, dataStream: InputStream) {
 
-        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authService.authenticatedUser)
+        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authenticatedUser)
             ?: throw InvalidPlaylistIdException()
 
         if (!imageService.addPlaylistThumbnail(playlist, dataStream)) {
@@ -80,7 +75,7 @@ class PlaylistService(
 
     @Transactional(readOnly = true)
     fun fetchPlaylistTracks(playlistId: Int, query: PaginationQuery): Page<TrackDto> {
-        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authUser)) {
+        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authenticatedUser)) {
             throw InvalidPlaylistIdException()
         }
 
@@ -92,7 +87,7 @@ class PlaylistService(
 
     @Transactional
     fun addTrackToPlaylist(playlistId: Int, source: TrackSourceDto): TrackDto {
-        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authUser)
+        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authenticatedUser)
             ?: throw InvalidPlaylistIdException()
 
         val platform = source.platform
@@ -118,7 +113,7 @@ class PlaylistService(
 
     @Transactional
     fun removeTrackFromPlaylist(playlistId: Int, trackId: Int) {
-        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authUser)
+        val playlist = playlistRepository.findPlaylistByIdAndOwner(playlistId, authenticatedUser)
             ?: throw InvalidPlaylistIdException()
         val track = trackRepository.findTrackById(trackId)
             ?: throw InvalidTrackIdException()
@@ -130,7 +125,7 @@ class PlaylistService(
 
     @Transactional
     fun moveTrackInPlaylist(playlistId: Int, trackId: Int, targetIndex: Int) {
-        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authUser)) {
+        if (!playlistRepository.existsPlaylistByIdAndOwner(playlistId, authenticatedUser)) {
             throw InvalidPlaylistIdException()
         }
 

@@ -5,6 +5,8 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Direction
+import java.security.SecureRandom
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration
 
@@ -50,6 +52,22 @@ fun Utils.toPageable(pageQuery: PaginationQuery,
     )
 }
 
+private const val RANDOM_CHARS_SOURCE = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+private val SECURE_RANDOM: SecureRandom = SecureRandom()
+
+fun Utils.generateRandomString(length: Int): String {
+    return StringBuilder(length).apply {
+        repeat(length) {
+            val randomIndex = SECURE_RANDOM.nextInt(RANDOM_CHARS_SOURCE.length)
+            append(RANDOM_CHARS_SOURCE[randomIndex])
+        }
+    }.toString()
+}
+
 fun Utils.toPageable(pageQuery: PaginationQuery): Pageable {
     return PageRequest.of(pageQuery.page, pageQuery.size)
+}
+
+fun LocalDateTime.isExpired(): Boolean {
+    return this.isBefore(LocalDateTime.now())
 }

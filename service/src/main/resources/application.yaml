@@ -18,8 +18,12 @@ minio:
     password: ${MINIO_PASSWORD}
 youtube-data:
   api-key: ${YOUTUBE_DATA_API_KEY}
+spotify-api:
+  client_id: ${SPOTIFY_CLIENT_ID}
+  client_secret: ${SPOTIFY_CLIENT_SECRET}
 auth:
   token:
     secret: ${SERVICE_JWT_SECRET}
     refresh-duration-seconds: 86400
     access-duration-seconds: 900
+    state-duration-seconds: 900
