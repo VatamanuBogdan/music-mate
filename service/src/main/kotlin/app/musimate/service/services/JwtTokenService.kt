@@ -13,6 +13,10 @@ import javax.crypto.SecretKey
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+enum class JwtAuthTokenType {
+    ACCESS, REFRESH
+}
+
 @Service
 class JwtTokenService {
 
@@ -37,12 +41,12 @@ class JwtTokenService {
     val stateTokenDuration: Duration
         get() = stateTokenDurationSeconds.seconds
     
-    fun generateAuthTokenForUser(email: String, type: AuthTokenType): AuthToken {
+    fun generateAuthTokenForUser(email: String, type: JwtAuthTokenType): String {
 
         val tokenTypeClaimValue = getAuthTokenTypeClaimValue(type)
         val tokenDuration = when (type) {
-            AuthTokenType.ACCESS -> accessTokenDuration
-            AuthTokenType.REFRESH -> refreshTokenDuration
+            JwtAuthTokenType.ACCESS -> accessTokenDuration
+            JwtAuthTokenType.REFRESH -> refreshTokenDuration
         }
 
         val value = createExpirableToken(email, tokenDuration)
@@ -50,7 +54,7 @@ class JwtTokenService {
             .signWith(secretKey, SIGNING_ALGORITHM)
             .compact()
 
-        return AuthToken(type, value)
+        return value
     }
     
     fun generateOAuthStateToken(email: String): String {
@@ -60,9 +64,7 @@ class JwtTokenService {
             .compact()
     }
 
-    fun isValidAuthToken(token: AuthToken) = isValidAuthToken(token.value, token.type)
-
-    fun isValidAuthToken(token: String, type: AuthTokenType): Boolean {
+    fun isValidAuthToken(token: String, type: JwtAuthTokenType): Boolean {
 
         val claims = extractAllClaims(token)
 
@@ -112,9 +114,9 @@ class JwtTokenService {
             .expiration(Utils.currentDateAfter(duration))
     }
 
-    private fun getAuthTokenTypeClaimValue(type: AuthTokenType) = when(type) {
-        AuthTokenType.ACCESS -> ACCESS_TOKEN_CLAIM_VALUE
-        AuthTokenType.REFRESH -> REFRESH_TOKEN_CLAIM_VALUE
+    private fun getAuthTokenTypeClaimValue(type: JwtAuthTokenType) = when(type) {
+        JwtAuthTokenType.ACCESS -> ACCESS_TOKEN_CLAIM_VALUE
+        JwtAuthTokenType.REFRESH -> REFRESH_TOKEN_CLAIM_VALUE
     }
 
     private val secretKey: SecretKey by lazy {

@@ -1,9 +1,9 @@
-package app.musimate.service.dtos.auth
+package app.musimate.service.api.dtos.auth
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
 
-data class CredentialsDto(
+data class UserSignInDto(
     @get:Email @get:NotEmpty
     var email: String,
 

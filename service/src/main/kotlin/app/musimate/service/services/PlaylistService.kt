@@ -1,8 +1,11 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.ApiErrorCode
-import app.musimate.service.dtos.PaginationQuery
-import app.musimate.service.dtos.playlist.*
+import app.musimate.service.api.ApiErrorCode
+import app.musimate.service.api.PaginationQuery
+import app.musimate.service.api.dtos.playlist.PlaylistCreationDto
+import app.musimate.service.api.dtos.playlist.PlaylistDto
+import app.musimate.service.api.dtos.playlist.TrackDto
+import app.musimate.service.api.dtos.playlist.TrackSourceDto
 import app.musimate.service.exceptions.ApiException
 import app.musimate.service.exceptions.InvalidPlaylistIdException
 import app.musimate.service.exceptions.InvalidTrackIdException
@@ -13,8 +16,6 @@ import app.musimate.service.repositories.PlaylistTrackRepository
 import app.musimate.service.repositories.TrackRepository
 import app.musimate.service.utils.Platform
 import app.musimate.service.utils.Utils
-import app.musimate.service.utils.toPageable
-import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Sort.Direction
 import org.springframework.http.HttpStatus

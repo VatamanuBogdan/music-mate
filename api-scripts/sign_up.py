@@ -20,4 +20,4 @@ request_body = {
     "birthDate": args.birthday
 }
 
-print_request_result("post","/api/auth/signup",False, json = request_body)
+print_request_result("post","/api/auth/sign-up",False, json = request_body)

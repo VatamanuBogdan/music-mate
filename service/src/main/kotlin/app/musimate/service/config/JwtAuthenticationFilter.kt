@@ -1,10 +1,11 @@
 package app.musimate.service.config
 
+import app.musimate.service.exceptions.InvalidAccessToken
+import app.musimate.service.exceptions.InvalidUserException
+import app.musimate.service.services.JwtAuthTokenType
 import app.musimate.service.services.JwtTokenService
 import app.musimate.service.utils.Constants
-import app.musimate.service.utils.AuthTokenType
 import app.musimate.service.utils.Utils
-import app.musimate.service.utils.extractValuePrefixedByFromHttpHeader
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -29,15 +30,22 @@ class JwtAuthenticationFilter(
     ) {
 
         val jwtToken = extractJwtTokenFrom(request)
-        if (jwtToken == null || !jwtTokenService.isValidAuthToken(jwtToken, AuthTokenType.ACCESS)) {
+        if (jwtToken == null || !jwtTokenService.isValidAuthToken(jwtToken, JwtAuthTokenType.ACCESS)) {
+            request.setAttribute(EXCEPTION_ATTRIBUTE_NAME, InvalidAccessToken())
             return filterChain.doFilter(request, response)
         }
 
         val email = jwtTokenService.extractEmail(jwtToken)
-            ?: return filterChain.doFilter(request, response)
+        if (email == null) {
+            request.setAttribute(EXCEPTION_ATTRIBUTE_NAME, InvalidAccessToken())
+            return filterChain.doFilter(request, response)
+        }
 
         val userDetails = userDetailsService.loadUserByUsername(email)
-            ?: return filterChain.doFilter(request, response)
+        if (userDetails == null) {
+            request.setAttribute(EXCEPTION_ATTRIBUTE_NAME, InvalidUserException())
+            return filterChain.doFilter(request, response)
+        }
 
         val authentication = UsernamePasswordAuthenticationToken(
             userDetails,
@@ -60,5 +68,9 @@ class JwtAuthenticationFilter(
             Constants.BEARER_AUTH_PREFIX,
             authHeader
         )
+    }
+
+    companion object {
+        const val EXCEPTION_ATTRIBUTE_NAME = "authentication_error"
     }
 }

@@ -1,10 +1,10 @@
-package app.musimate.service.dtos.auth
+package app.musimate.service.api.dtos.auth
 
 import app.musimate.service.models.User
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
 
-data class AccountInfosDto(
+data class UserInfoDto(
     @get:NotEmpty @get:Email
     val email: String,
 
@@ -16,11 +16,4 @@ data class AccountInfosDto(
 
     @get:NotEmpty
     val lastName: String
-)
-
-fun AccountInfosDto(user: User) = AccountInfosDto(
-    email = user.email,
-    username = user.username,
-    firstName = user.firstName,
-    lastName = user.lastName
 )

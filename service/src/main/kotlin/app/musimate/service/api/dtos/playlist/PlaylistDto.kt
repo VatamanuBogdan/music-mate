@@ -1,4 +1,4 @@
-package app.musimate.service.dtos.playlist
+package app.musimate.service.api.dtos.playlist
 
 import app.musimate.service.models.Playlist
 import jakarta.validation.constraints.Max

@@ -1,4 +1,4 @@
-package app.musimate.service.dtos
+package app.musimate.service.api
 
 import org.springframework.data.domain.Page
 import org.springframework.web.bind.annotation.RequestParam

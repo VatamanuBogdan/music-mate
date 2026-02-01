@@ -1,12 +1,9 @@
 package app.musimate.service.controllers
 
-import app.musimate.service.dtos.PaginatedResponse
-import app.musimate.service.dtos.PaginationQuery
-import app.musimate.service.dtos.playlist.*
-import app.musimate.service.models.User
-import app.musimate.service.services.AuthenticationService
+import app.musimate.service.api.PaginatedResponse
+import app.musimate.service.api.PaginationQuery
+import app.musimate.service.api.dtos.playlist.*
 import app.musimate.service.services.PlaylistService
-import app.musimate.service.services.ServiceBase
 import app.musimate.service.utils.AuthenticationContext
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.HttpStatus

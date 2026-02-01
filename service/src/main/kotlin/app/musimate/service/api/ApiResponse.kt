@@ -1,4 +1,4 @@
-package app.musimate.service.dtos
+package app.musimate.service.api
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude

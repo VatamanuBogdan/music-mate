@@ -1,6 +1,6 @@
 package app.musimate.service.exceptions
 
-import app.musimate.service.dtos.ApiErrorCode
+import app.musimate.service.api.ApiErrorCode
 import org.springframework.http.HttpStatus
 
 class UserAlreadyRegisteredException : ApiException(
@@ -19,6 +19,12 @@ class InvalidUserException : ApiException(
     statusCode = HttpStatus.UNAUTHORIZED,
     errorCode = ApiErrorCode.NOT_REGISTERED,
     message = "User doesn't exist"
+)
+
+class InvalidAccessToken : ApiException(
+    statusCode = HttpStatus.UNAUTHORIZED,
+    errorCode = ApiErrorCode.INVALID_TOKEN,
+    message = "Access token is expired or invalid"
 )
 
 class InvalidRefreshToken : ApiException(

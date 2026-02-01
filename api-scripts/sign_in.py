@@ -15,6 +15,6 @@ request_body = {
     "password": args.password
 }
 
-response = print_request_result("post","/api/auth/signin", False, json = request_body)
+response = print_request_result("post","/api/auth/sign-in", False, json = request_body)
 new_auth_tokens = AuthenticationTokens.from_response(response)
 AuthenticationTokens.update(new_auth_tokens)

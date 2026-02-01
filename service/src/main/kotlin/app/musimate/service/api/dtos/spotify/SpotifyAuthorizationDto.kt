@@ -1,4 +1,4 @@
-package app.musimate.service.dtos.auth
+package app.musimate.service.api.dtos.spotify
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

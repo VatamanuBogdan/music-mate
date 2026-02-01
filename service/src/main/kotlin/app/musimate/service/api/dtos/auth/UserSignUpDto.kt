@@ -1,4 +1,4 @@
-package app.musimate.service.dtos.auth
+package app.musimate.service.api.dtos.auth
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.validation.constraints.Email
@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Past
 import java.time.LocalDate
 
-data class UserRegisterDto(
+data class UserSignUpDto(
     @get:NotEmpty
     var firstName: String,
 

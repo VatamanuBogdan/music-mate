@@ -85,9 +85,9 @@ class AuthenticationTokens:
 
     @staticmethod
     def from_response(response: Response) -> 'AuthenticationTokens':
-        return AuthenticationTokens(access=response.json()['data']['token']['value'],
+        return AuthenticationTokens(access=response.json()['data']['tokens']['accessToken'],
                                     refresh=response.cookies['refresh-token'])
 
     @staticmethod
     def extract_access_token(response: Response) -> str:
-        return response.json()['data']['value']
+        return response.json()['data']['accessToken']

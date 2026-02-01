@@ -1,6 +1,6 @@
 package app.musimate.service.exceptions
 
-import app.musimate.service.dtos.ApiErrorCode
+import app.musimate.service.api.ApiErrorCode
 import org.springframework.http.HttpStatus
 
 class InvalidPlaylistIdException: ApiException(

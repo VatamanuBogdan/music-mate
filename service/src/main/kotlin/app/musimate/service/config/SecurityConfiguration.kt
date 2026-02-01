@@ -1,5 +1,6 @@
 package app.musimate.service.config
 
+import app.musimate.service.controllers.handlers.ApiAccessDeniedHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -18,7 +19,8 @@ import org.springframework.web.filter.CorsFilter
 @EnableWebSecurity
 class SecurityConfiguration(
     private val authProvider: AuthenticationProvider,
-    private val jwtAuthFilter: JwtAuthenticationFilter
+    private val jwtAuthFilter: JwtAuthenticationFilter,
+    private val accessDeniedHandler: ApiAccessDeniedHandler
 ) {
 
     @Bean
@@ -42,6 +44,9 @@ class SecurityConfiguration(
             }
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .exceptionHandling {
+                it.accessDeniedHandler(accessDeniedHandler)
             }
             .authenticationProvider(authProvider)
             .addFilterBefore(
@@ -83,10 +88,10 @@ class SecurityConfiguration(
 
     companion object {
         val WHITE_LISTED_PATHS = arrayOf(
-            "/api/auth/signin",
-            "/api/auth/signup",
+            "/api/auth/sign-in",
+            "/api/auth/sign-up",
+            "/api/auth/sign-out",
             "/api/auth/refresh",
-            "/api/auth/signout",
             "/api/auth/spotify/callback",
             "/api/dummy/**"
         )

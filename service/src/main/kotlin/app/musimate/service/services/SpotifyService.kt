@@ -1,7 +1,6 @@
 package app.musimate.service.services
 
-import app.musimate.service.dtos.auth.AuthTokenDto
-import app.musimate.service.dtos.auth.SpotifyAuthorizationDto
+import app.musimate.service.api.dtos.spotify.SpotifyAuthorizationDto
 import app.musimate.service.exceptions.InvalidSpotifyStateToken
 import app.musimate.service.exceptions.SpotifyAuthorizationFailed
 import app.musimate.service.exceptions.SpotifyInternalError
@@ -9,7 +8,6 @@ import app.musimate.service.models.SpotifySecrets
 import app.musimate.service.models.ThirdPartySecrets
 import app.musimate.service.models.User
 import app.musimate.service.repositories.ThirdPartySecretsRepository
-import app.musimate.service.utils.AuthTokenType
 import app.musimate.service.utils.isExpired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
@@ -59,7 +57,7 @@ class SpotifyService(
     }
 
     @Transactional
-    fun syncAuthorization(state: String, authorizationCode: String?, error: String?, redirectUri: String): AuthTokenDto {
+    fun syncAuthorization(state: String, authorizationCode: String?, error: String?, redirectUri: String): String {
         if (error != null || authorizationCode == null) {
             throw SpotifyAuthorizationFailed()
         }
@@ -85,7 +83,7 @@ class SpotifyService(
         }
 
         updateSpotifySecrets(secrets, spotifyTokens)
-        return AuthTokenDto(AuthTokenType.ACCESS, spotifyTokens.accessToken)
+        return spotifyTokens.accessToken
     }
 
     @Transactional
@@ -99,7 +97,6 @@ class SpotifyService(
         }
 
         val spotifySecrets = secrets.spotifySecrets
-
         if (spotifySecrets?.refreshToken == null) {
             return null
         }
@@ -159,7 +156,8 @@ class SpotifyService(
     }
 
     private fun updateSpotifySecrets(secrets: ThirdPartySecrets,
-                                     authorizationDto: SpotifyAuthorizationDto) {
+                                     authorizationDto: SpotifyAuthorizationDto
+    ) {
         val expiration = Instant.now()
             .plusSeconds(authorizationDto.durationSeconds.toLong())
             .let {
